@@ -154,7 +154,7 @@ Kernel launch example
 
     MyKernel<<<dim3(gridDim), dim3(groupDim), 0, 0>>> (a,b,c,n);
     // Alternatively, kernel can be launched by
-    // hipLaunchKernelGGL(MyKernel, dim3(N/blockSize), dim3(blockSize), 0, 0,  a,b,c,N);
+    // hipLaunchKernelGGL(MyKernel, dim3(N/blockSize), dim3(blockSize), 0, 0, a,b,c,N);
   }
 
 Variable type qualifiers
@@ -316,8 +316,7 @@ The ``__syncthreads()`` built-in function is supported in HIP. The ``__syncthrea
 Math functions
 ====================================================
 
-HIP-Clang supports a set of math operations that are callable from the device. HIP supports most of the device functions supported by CUDA.
-These are described in the following sections.
+HIP-Clang supports a set of math operations that are callable from the device. HIP supports most of the device functions supported by CUDA. These are described in the following sections.
 
 Single precision mathematical functions
 --------------------------------------------------------------------------------------------
@@ -1338,9 +1337,7 @@ Following is the list of supported floating-point intrinsics. Note that intrinsi
 
 .. note::
 
-  Only the nearest even rounding mode supported on AMD GPUs by defaults. The ``_rz``, ``_ru`` and
-  ``_rd`` suffixed intrinsic functions are existing in HIP AMD backend, if the
-  ``OCML_BASIC_ROUNDED_OPERATIONS`` macro is defined.
+  Only the nearest even rounding mode supported on AMD GPUs by defaults. The ``_rz``, ``_ru`` and  ``_rd`` suffixed intrinsic functions are existing in HIP AMD backend, if the  ``OCML_BASIC_ROUNDED_OPERATIONS`` macro is defined.
 
 .. list-table:: Single precision intrinsics mathematical functions
 
@@ -1451,11 +1448,11 @@ The following surface functions are supported in HIP:
 
 .. doxygenfunction:: surf1Dread
 
-.. doxygenfunction:: surf1DWrite
+.. doxygenfunction:: surf1Dwrite
 
 .. doxygenfunction:: surf2Dread
 
-.. doxygenfunction:: surf2DWrite
+.. doxygenfunction:: surf2Dwrite
 
 .. doxygenfunction:: surf3Dread
 
@@ -1463,11 +1460,11 @@ The following surface functions are supported in HIP:
 
 .. doxygenfunction:: surf1DLayeredread
 
-.. doxygenfunction:: surf1DLayeredWrite
+.. doxygenfunction:: surf1DLayeredwrite
 
 .. doxygenfunction:: surf2DLayeredread
 
-.. doxygenfunction:: surf2DLayeredWrite
+.. doxygenfunction:: surf2DLayeredwrite
 
 .. doxygenfunction:: surfCubemapread
 
@@ -1507,7 +1504,7 @@ To read a high-resolution timer from the device, HIP provides the following buil
 
   Where ``hipDeviceAttributeWallClockRate`` is a device attribute. Note that wall clock frequency is a
   per-device attribute.
-  
+
   Note that ``clock()`` and ``clock64()`` do not work properly on AMD RDNA3 (GFX11) graphic processors.
 
 Atomic functions
@@ -2109,7 +2106,7 @@ HIP does not support kernel language warp matrix types or functions.
       - ✗
       - ✓
 
-    * - ``void store_matrix_sync(T* mptr, fragment<...> &a,  unsigned lda, layout_t layout)``
+    * - ``void store_matrix_sync(T* mptr, fragment<...> &a, unsigned lda, layout_t layout)``
       - ✗
       - ✓
 
@@ -2296,7 +2293,7 @@ Unroll with a bounds that is known at compile-time is supported. For example:
 
 .. code-block:: cpp
 
-  #pragma unroll 1  /* tell compiler to never unroll the loop */
+  #pragma unroll 1 /* tell compiler to never unroll the loop */
   for (int i=0; i<16; i++) ...
 
 .. code-block:: cpp
