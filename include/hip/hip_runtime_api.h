@@ -575,11 +575,11 @@ enum hipGPUDirectRDMAWritesOrdering {
 #include <hip/texture_types.h>
 #include <hip/surface_types.h>
 #if defined(_MSC_VER)
-#define DEPRECATED(msg) __declspec(deprecated(msg))
+#define HIP_DEPRECATED(msg) __declspec(deprecated(msg))
 #else // !defined(_MSC_VER)
-#define DEPRECATED(msg) __attribute__ ((deprecated(msg)))
+#define HIP_DEPRECATED(msg) __attribute__ ((deprecated(msg)))
 #endif // !defined(_MSC_VER)
-#define DEPRECATED_MSG "This API is marked as deprecated and may not be supported in future releases. For more details please refer https://github.com/ROCm/HIP/blob/develop/docs/reference/deprecated_api_list.md"
+#define HIP_DEPRECATED_MSG "This API is marked as deprecated and might not be supported in future releases. For more details please refer https://github.com/ROCm/HIP/blob/develop/docs/reference/deprecated_api_list.md"
 #define HIP_LAUNCH_PARAM_BUFFER_POINTER ((void*)0x01)
 #define HIP_LAUNCH_PARAM_BUFFER_SIZE ((void*)0x02)
 #define HIP_LAUNCH_PARAM_END ((void*)0x03)
@@ -3158,7 +3158,7 @@ hipError_t hipExtMallocWithFlags(void** ptr, size_t sizeBytes, unsigned int flag
  *
  *  @warning  This API is deprecated, use hipHostAlloc() instead
  */
-DEPRECATED("use hipHostAlloc instead")
+HIP_DEPRECATED("use hipHostAlloc instead")
 hipError_t hipMallocHost(void** ptr, size_t size);
 /**
  *  @brief Allocate pinned host memory [Deprecated]
@@ -3172,7 +3172,7 @@ hipError_t hipMallocHost(void** ptr, size_t size);
  *
  *  @warning  This API is deprecated, use hipHostAlloc() instead
  */
-DEPRECATED("use hipHostAlloc instead")
+HIP_DEPRECATED("use hipHostAlloc instead")
 hipError_t hipMemAllocHost(void** ptr, size_t size);
 /**
  *  @brief Allocates device accessible page locked (pinned) host memory
@@ -4844,7 +4844,7 @@ hipError_t hipMemcpy2DArrayToArray(hipArray_t dst, size_t wOffsetDst, size_t hOf
  *  hipMemcpyAsync
  *  @warning  This API is deprecated.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipMemcpyToArray(hipArray_t dst, size_t wOffset, size_t hOffset, const void* src,
                             size_t count, hipMemcpyKind kind);
 /**
@@ -4863,7 +4863,7 @@ hipError_t hipMemcpyToArray(hipArray_t dst, size_t wOffset, size_t hOffset, cons
  * hipMemcpyAsync
  * @warning  This API is deprecated.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipMemcpyFromArray(void* dst, hipArray_const_t srcArray, size_t wOffset, size_t hOffset,
                               size_t count, hipMemcpyKind kind);
 /**
@@ -5121,7 +5121,7 @@ hipError_t hipMemcpyPeerAsync(void* dst, int dstDeviceId, const void* src, int s
  * NVIDIA platform.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxCreate(hipCtx_t* ctx, unsigned int flags, hipDevice_t device);
 /**
  * @brief Destroy a HIP context.
@@ -5136,7 +5136,7 @@ hipError_t hipCtxCreate(hipCtx_t* ctx, unsigned int flags, hipDevice_t device);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxDestroy(hipCtx_t ctx);
 /**
  * @brief Pop the current/default context and return the popped context.
@@ -5151,7 +5151,7 @@ hipError_t hipCtxDestroy(hipCtx_t ctx);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxPopCurrent(hipCtx_t* ctx);
 /**
  * @brief Push the context to be set as current/ default context
@@ -5166,7 +5166,7 @@ hipError_t hipCtxPopCurrent(hipCtx_t* ctx);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxPushCurrent(hipCtx_t ctx);
 /**
  * @brief Set the passed context as current/default
@@ -5181,7 +5181,7 @@ hipError_t hipCtxPushCurrent(hipCtx_t ctx);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxSetCurrent(hipCtx_t ctx);
 /**
  * @brief Get the handle of the current/ default context
@@ -5196,7 +5196,7 @@ hipError_t hipCtxSetCurrent(hipCtx_t ctx);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxGetCurrent(hipCtx_t* ctx);
 /**
  * @brief Get the handle of the device associated with current/default context
@@ -5211,7 +5211,7 @@ hipError_t hipCtxGetCurrent(hipCtx_t* ctx);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxGetDevice(hipDevice_t* device);
 /**
  * @brief Returns the approximate HIP api version.
@@ -5233,7 +5233,7 @@ hipError_t hipCtxGetDevice(hipDevice_t* device);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxGetApiVersion(hipCtx_t ctx, int* apiVersion);
 /**
  * @brief Get Cache configuration for a specific function
@@ -5251,7 +5251,7 @@ hipError_t hipCtxGetApiVersion(hipCtx_t ctx, int* apiVersion);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxGetCacheConfig(hipFuncCache_t* cacheConfig);
 /**
  * @brief Set L1/Shared cache partition.
@@ -5269,7 +5269,7 @@ hipError_t hipCtxGetCacheConfig(hipFuncCache_t* cacheConfig);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxSetCacheConfig(hipFuncCache_t cacheConfig);
 /**
  * @brief Set Shared memory bank configuration.
@@ -5287,7 +5287,7 @@ hipError_t hipCtxSetCacheConfig(hipFuncCache_t cacheConfig);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxSetSharedMemConfig(hipSharedMemConfig config);
 /**
  * @brief Get Shared memory bank configuration.
@@ -5305,7 +5305,7 @@ hipError_t hipCtxSetSharedMemConfig(hipSharedMemConfig config);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxGetSharedMemConfig(hipSharedMemConfig* pConfig);
 /**
  * @brief Blocks until the default context has completed all preceding requested tasks.
@@ -5321,7 +5321,7 @@ hipError_t hipCtxGetSharedMemConfig(hipSharedMemConfig* pConfig);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxSynchronize(void);
 /**
  * @brief Return flags used for creating default context.
@@ -5336,7 +5336,7 @@ hipError_t hipCtxSynchronize(void);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxGetFlags(unsigned int* flags);
 /**
  * @brief Enables direct access to memory allocations in a peer context.
@@ -5360,7 +5360,7 @@ hipError_t hipCtxGetFlags(unsigned int* flags);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxEnablePeerAccess(hipCtx_t peerCtx, unsigned int flags);
 /**
  * @brief Disable direct access from current context's virtual address space to memory allocations
@@ -5381,7 +5381,7 @@ hipError_t hipCtxEnablePeerAccess(hipCtx_t peerCtx, unsigned int flags);
  * @warning  This API is deprecated on the AMD platform, only for equivalent cuCtx driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipCtxDisablePeerAccess(hipCtx_t peerCtx);
 
 /**
@@ -5399,7 +5399,7 @@ hipError_t hipCtxDisablePeerAccess(hipCtx_t peerCtx);
  * @warning  This API is deprecated on the AMD platform, only for equivalent driver API on the
  * NVIDIA platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipDevicePrimaryCtxGetState(hipDevice_t dev, unsigned int* flags, int* active);
 /**
  * @brief Release the primary context on the GPU.
@@ -5416,7 +5416,7 @@ hipError_t hipDevicePrimaryCtxGetState(hipDevice_t dev, unsigned int* flags, int
  * @warning  This API is deprecated on the AMD platform, only for equivalent driver API on the NVIDIA
  * platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipDevicePrimaryCtxRelease(hipDevice_t dev);
 /**
  * @brief Retain the primary context on the GPU.
@@ -5432,7 +5432,7 @@ hipError_t hipDevicePrimaryCtxRelease(hipDevice_t dev);
  * @warning  This API is deprecated on the AMD platform, only for equivalent driver API on the NVIDIA
  * platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipDevicePrimaryCtxRetain(hipCtx_t* pctx, hipDevice_t dev);
 /**
  * @brief Resets the primary context on the GPU.
@@ -5447,7 +5447,7 @@ hipError_t hipDevicePrimaryCtxRetain(hipCtx_t* pctx, hipDevice_t dev);
  * @warning  This API is deprecated on the AMD platform, only for equivalent driver API on the NVIDIA
  * platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipDevicePrimaryCtxReset(hipDevice_t dev);
 /**
  * @brief Set flags for the primary context.
@@ -5463,7 +5463,7 @@ hipError_t hipDevicePrimaryCtxReset(hipDevice_t dev);
  * @warning  This API is deprecated on the AMD platform, only for equivalent driver API on the NVIDIA
  * platform.
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipDevicePrimaryCtxSetFlags(hipDevice_t dev, unsigned int flags);
 // doxygen end Context Management
 /**
@@ -5840,7 +5840,7 @@ hipError_t hipOccupancyMaxPotentialBlockSize(int* gridSize, int* blockSize,
  * @returns  #hipErrorNotSupported
  * @warning : hipProfilerStart API is deprecated, use roctracer/rocTX instead.
  */
-DEPRECATED("use roctracer/rocTX instead")
+HIP_DEPRECATED("use roctracer/rocTX instead")
 hipError_t hipProfilerStart();
 /**
  * @brief Stop recording of profiling information.
@@ -5848,7 +5848,7 @@ hipError_t hipProfilerStart();
  * @returns  #hipErrorNotSupported
  * @warning  hipProfilerStart API is deprecated, use roctracer/rocTX instead.
  */
-DEPRECATED("use roctracer/rocTX instead")
+HIP_DEPRECATED("use roctracer/rocTX instead")
 hipError_t hipProfilerStop();
 // doxygen end profiler
 /**
@@ -6298,7 +6298,7 @@ hipError_t hipMipmappedArrayGetLevel(
  * @returns #hipSuccess, #hipErrorInvalidValue
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipBindTextureToMipmappedArray(
     const textureReference* tex,
     hipMipmappedArray_const_t mipmappedArray,
@@ -6314,7 +6314,7 @@ hipError_t hipBindTextureToMipmappedArray(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipGetTextureReference(
     const textureReference** texref,
     const void* symbol);
@@ -6329,7 +6329,7 @@ hipError_t hipGetTextureReference(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetBorderColor(float* pBorderColor, const textureReference* texRef);
 
 /**
@@ -6343,7 +6343,7 @@ hipError_t hipTexRefGetBorderColor(float* pBorderColor, const textureReference* 
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetArray(hipArray_t* pArray, const textureReference* texRef);
 
 /**
@@ -6357,7 +6357,7 @@ hipError_t hipTexRefGetArray(hipArray_t* pArray, const textureReference* texRef)
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetAddressMode(
     textureReference* texRef,
     int dim,
@@ -6374,7 +6374,7 @@ hipError_t hipTexRefSetAddressMode(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetArray(
     textureReference* tex,
     hipArray_const_t array,
@@ -6390,7 +6390,7 @@ hipError_t hipTexRefSetArray(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetFilterMode(
     textureReference* texRef,
     enum hipTextureFilterMode fm);
@@ -6405,7 +6405,7 @@ hipError_t hipTexRefSetFilterMode(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetFlags(
     textureReference* texRef,
     unsigned int Flags);
@@ -6421,7 +6421,7 @@ hipError_t hipTexRefSetFlags(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetFormat(
     textureReference* texRef,
     hipArray_Format fmt,
@@ -6440,7 +6440,7 @@ hipError_t hipTexRefSetFormat(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipBindTexture(
     size_t* offset,
     const textureReference* tex,
@@ -6463,7 +6463,7 @@ hipError_t hipBindTexture(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipBindTexture2D(
     size_t* offset,
     const textureReference* tex,
@@ -6484,7 +6484,7 @@ hipError_t hipBindTexture2D(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipBindTextureToArray(
     const textureReference* tex,
     hipArray_const_t array,
@@ -6500,7 +6500,7 @@ hipError_t hipBindTextureToArray(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipGetTextureAlignmentOffset(
     size_t* offset,
     const textureReference* texref);
@@ -6514,7 +6514,7 @@ hipError_t hipGetTextureAlignmentOffset(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipUnbindTexture(const textureReference* tex);
 /**
  * @brief Gets the address for a texture reference.
@@ -6527,7 +6527,7 @@ hipError_t hipUnbindTexture(const textureReference* tex);
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetAddress(
     hipDeviceptr_t* dev_ptr,
     const textureReference* texRef);
@@ -6543,7 +6543,7 @@ hipError_t hipTexRefGetAddress(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetAddressMode(
     enum hipTextureAddressMode* pam,
     const textureReference* texRef,
@@ -6559,7 +6559,7 @@ hipError_t hipTexRefGetAddressMode(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetFilterMode(
     enum hipTextureFilterMode* pfm,
     const textureReference* texRef);
@@ -6574,7 +6574,7 @@ hipError_t hipTexRefGetFilterMode(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetFlags(
     unsigned int* pFlags,
     const textureReference* texRef);
@@ -6590,7 +6590,7 @@ hipError_t hipTexRefGetFlags(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetFormat(
     hipArray_Format* pFormat,
     int* pNumChannels,
@@ -6606,7 +6606,7 @@ hipError_t hipTexRefGetFormat(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetMaxAnisotropy(
     int* pmaxAnsio,
     const textureReference* texRef);
@@ -6621,7 +6621,7 @@ hipError_t hipTexRefGetMaxAnisotropy(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetMipmapFilterMode(
     enum hipTextureFilterMode* pfm,
     const textureReference* texRef);
@@ -6636,7 +6636,7 @@ hipError_t hipTexRefGetMipmapFilterMode(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetMipmapLevelBias(
     float* pbias,
     const textureReference* texRef);
@@ -6652,7 +6652,7 @@ hipError_t hipTexRefGetMipmapLevelBias(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetMipmapLevelClamp(
     float* pminMipmapLevelClamp,
     float* pmaxMipmapLevelClamp,
@@ -6668,7 +6668,7 @@ hipError_t hipTexRefGetMipmapLevelClamp(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefGetMipMappedArray(
     hipMipmappedArray_t* pArray,
     const textureReference* texRef);
@@ -6685,7 +6685,7 @@ hipError_t hipTexRefGetMipMappedArray(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetAddress(
     size_t* ByteOffset,
     textureReference* texRef,
@@ -6704,7 +6704,7 @@ hipError_t hipTexRefSetAddress(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetAddress2D(
     textureReference* texRef,
     const HIP_ARRAY_DESCRIPTOR* desc,
@@ -6721,7 +6721,7 @@ hipError_t hipTexRefSetAddress2D(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetMaxAnisotropy(
     textureReference* texRef,
     unsigned int maxAniso);
@@ -6736,7 +6736,7 @@ hipError_t hipTexRefSetMaxAnisotropy(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetBorderColor(
     textureReference* texRef,
     float* pBorderColor);
@@ -6751,7 +6751,7 @@ hipError_t hipTexRefSetBorderColor(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetMipmapFilterMode(
     textureReference* texRef,
     enum hipTextureFilterMode fm);
@@ -6766,7 +6766,7 @@ hipError_t hipTexRefSetMipmapFilterMode(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetMipmapLevelBias(
     textureReference* texRef,
     float bias);
@@ -6782,7 +6782,7 @@ hipError_t hipTexRefSetMipmapLevelBias(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetMipmapLevelClamp(
     textureReference* texRef,
     float minMipMapLevelClamp,
@@ -6799,7 +6799,7 @@ hipError_t hipTexRefSetMipmapLevelClamp(
  * @warning This API is deprecated.
  *
  */
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 hipError_t hipTexRefSetMipmappedArray(
     textureReference* texRef,
     struct hipMipmappedArray* mipmappedArray,
@@ -9052,7 +9052,7 @@ inline hipError_t hipExtLaunchMultiKernelMultiDevice(hipLaunchParams* launchPara
  *
  */
 template <class T, int dim, enum hipTextureReadMode readMode>
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 static inline hipError_t hipBindTexture(size_t* offset, const struct texture<T, dim, readMode>& tex,
                                         const void* devPtr, size_t size = UINT_MAX) {
     return hipBindTexture(offset, &tex, devPtr, &tex.channelDesc, size);
@@ -9072,7 +9072,7 @@ static inline hipError_t hipBindTexture(size_t* offset, const struct texture<T, 
  *
  */
 template <class T, int dim, enum hipTextureReadMode readMode>
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 static inline hipError_t
     hipBindTexture(size_t* offset, const struct texture<T, dim, readMode>& tex, const void* devPtr,
                    const struct hipChannelFormatDesc& desc, size_t size = UINT_MAX) {
@@ -9094,7 +9094,7 @@ static inline hipError_t
  *
  */
 template<class T, int dim, enum hipTextureReadMode readMode>
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 static inline hipError_t hipBindTexture2D(
     size_t *offset,
     const struct texture<T, dim, readMode> &tex,
@@ -9122,7 +9122,7 @@ static inline hipError_t hipBindTexture2D(
  *
  */
 template<class T, int dim, enum hipTextureReadMode readMode>
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 static inline hipError_t hipBindTexture2D(
   size_t *offset,
   const struct texture<T, dim, readMode> &tex,
@@ -9146,7 +9146,7 @@ static inline hipError_t hipBindTexture2D(
  *
  */
 template<class T, int dim, enum hipTextureReadMode readMode>
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 static inline hipError_t hipBindTextureToArray(
     const struct texture<T, dim, readMode> &tex,
     hipArray_const_t array)
@@ -9168,7 +9168,7 @@ static inline hipError_t hipBindTextureToArray(
  *
  */
 template<class T, int dim, enum hipTextureReadMode readMode>
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 static inline hipError_t hipBindTextureToArray(
     const struct texture<T, dim, readMode> &tex,
     hipArray_const_t array,
@@ -9188,7 +9188,7 @@ static inline hipError_t hipBindTextureToArray(
  *
  */
 template<class T, int dim, enum hipTextureReadMode readMode>
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 static inline hipError_t hipBindTextureToMipmappedArray(
     const struct texture<T, dim, readMode> &tex,
     hipMipmappedArray_const_t mipmappedArray)
@@ -9215,7 +9215,7 @@ static inline hipError_t hipBindTextureToMipmappedArray(
  *
  */
 template<class T, int dim, enum hipTextureReadMode readMode>
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 static inline hipError_t hipBindTextureToMipmappedArray(
     const struct texture<T, dim, readMode> &tex,
     hipMipmappedArray_const_t mipmappedArray,
@@ -9234,7 +9234,7 @@ static inline hipError_t hipBindTextureToMipmappedArray(
  *
  */
 template<class T, int dim, enum hipTextureReadMode readMode>
-DEPRECATED(DEPRECATED_MSG)
+HIP_DEPRECATED(HIP_DEPRECATED_MSG)
 static inline hipError_t hipUnbindTexture(
     const struct texture<T, dim, readMode> &tex)
 {
