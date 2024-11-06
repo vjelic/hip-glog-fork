@@ -699,7 +699,7 @@ enum hipLimit_t {
  * non-coherent host memory visible to the host. The flag is a no-op on CUDA platforms.*/
 #define hipEventReleaseToSystem  0x80000000
 
-//Flags that can be used with hipExtHostAlloc/hipHostAlloc.
+//Flags that can be used with hipHostMalloc/hipHostAlloc.
 /** Default pinned memory allocation on the host.*/
 #define hipHostMallocDefault 0x0
 #define hipHostAllocDefault 0x0
@@ -724,15 +724,12 @@ enum hipLimit_t {
 * @note  This numa allocation flag is applicable on Linux, under development on Windows.
 */
 #define hipHostMallocNumaUser  0x20000000
-#define hipExtHostAllocNumaUser  0x20000000
 
 /** Allocate coherent memory. Overrides HIP_COHERENT_HOST_ALLOC for specific allocation.*/
 #define hipHostMallocCoherent  0x40000000
-#define hipExtHostAllocCoherent  0x40000000
 
 /** Allocate non-coherent memory. Overrides HIP_COHERENT_HOST_ALLOC for specific allocation.*/
 #define hipHostMallocNonCoherent  0x80000000
-#define hipExtHostAllocNonCoherent  0x80000000
 
 /** Memory can be accessed by any stream on any device*/
 #define hipMemAttachGlobal  0x01
@@ -3136,7 +3133,7 @@ hipError_t hipExternalMemoryGetMappedMipmappedArray(hipMipmappedArray_t* mipmap,
  *  @return #hipSuccess, #hipErrorOutOfMemory, #hipErrorInvalidValue (bad context, null *ptr)
  *
  *  @see hipMallocPitch, hipFree, hipMallocArray, hipFreeArray, hipMalloc3D, hipMalloc3DArray,
- * hipFreeHost, hipHostAlloc
+ * hipHostFree, hipHostMalloc
  */
 hipError_t hipMalloc(void** ptr, size_t size);
 /**
@@ -3156,7 +3153,7 @@ hipError_t hipMalloc(void** ptr, size_t size);
  *  @return #hipSuccess, #hipErrorOutOfMemory, #hipErrorInvalidValue (bad context, null *ptr)
  *
  *  @see hipMallocPitch, hipFree, hipMallocArray, hipFreeArray, hipMalloc3D, hipMalloc3DArray,
- * hipFreeHost, hipExtHostMalloc
+ * hipHostFree, hipHostMalloc
  */
 hipError_t hipExtMallocWithFlags(void** ptr, size_t sizeBytes, unsigned int flags);
 
@@ -3181,9 +3178,9 @@ hipError_t hipExtMallocWithFlags(void** ptr, size_t sizeBytes, unsigned int flag
  *
  *  @return #hipSuccess, #hipErrorOutOfMemory
  *
- *  @warning  This API is deprecated, use hipHostAlloc() instead
+ *  @warning  This API is deprecated, use hipHostMalloc() instead
  */
-HIP_DEPRECATED("use hipHostAlloc instead")
+HIP_DEPRECATED("use hipHostMalloc instead")
 hipError_t hipMallocHost(void** ptr, size_t size);
 /**
  *  @brief Allocate pinned host memory [Deprecated]
@@ -3195,9 +3192,9 @@ hipError_t hipMallocHost(void** ptr, size_t size);
  *
  *  @return #hipSuccess, #hipErrorOutOfMemory
  *
- *  @warning  This API is deprecated, use hipHostAlloc() instead
+ *  @warning  This API is deprecated, use hipHostMalloc() instead
  */
-HIP_DEPRECATED("use hipHostAlloc instead")
+HIP_DEPRECATED("use hipHostMalloc instead")
 hipError_t hipMemAllocHost(void** ptr, size_t size);
 // end doxygen deprecated management memory
 /**
@@ -3233,42 +3230,9 @@ hipError_t hipMemAllocHost(void** ptr, size_t size);
  *
  *  @return #hipSuccess, #hipErrorOutOfMemory
  *
- *
- *  @see hipSetDeviceFlags, hiptFreeHost
+ *  @see hipSetDeviceFlags, hipHostFree
  */
 hipError_t hipHostMalloc(void** ptr, size_t size, unsigned int flags);
-/**
- *  @brief Allocates device accessible page locked (pinned) host memory
- *
- *  This API allocates pinned host memory which is mapped into the address space of all GPUs
- *  in the system, the memory can be accessed directly by the GPU device, and can be read or
- *  written with much higher bandwidth than pageable memory obtained with functions such as
- *  malloc().
- *
- *  Using the pinned host memory, applications can implement faster data transfers for HostToDevice
- *  and DeviceToHost. The runtime tracks the hipExtHostAlloc allocations and can avoid some of the
- *  setup required for regular unpinned memory.
- *
- *  When the memory accesses are infrequent, zero-copy memory can be a good choice, for coherent
- *  allocation. GPU can directly access the host memory over the CPU/GPU interconnect, without need
- *  to copy the data.
- *
- *  Currently the allocation granularity is 4KB for the API.
- *
- *  Developers need to choose proper allocation flag with consideration of synchronization.
- *
- *  @param[out] ptr Pointer to the allocated host pinned memory
- *  @param[in]  size Requested memory size in bytes
- *  If size is 0, no memory is allocated, *ptr returns nullptr, and hipSuccess is returned.
- *  @param[in]  flags Type of host memory allocation
- *
- *  If no input for flags, it will be the default pinned memory allocation on the host.
- *
- *  @return #hipSuccess, #hipErrorOutOfMemory
- *
- *  @see hipSetDeviceFlags, hipFreeHost
- */
-hipError_t hipExtHostAlloc(void** ptr, size_t size, unsigned int flags);
 /**
  *-------------------------------------------------------------------------------------------------
  *-------------------------------------------------------------------------------------------------
@@ -3852,25 +3816,25 @@ hipError_t hipMemPoolImportPointer(
  */
 hipError_t hipHostAlloc(void** ptr, size_t size, unsigned int flags);
 /**
- *  @brief Get Device pointer from Host Pointer allocated through hipHostAlloc
+ *  @brief Get Device pointer from Host Pointer allocated through hipHostMalloc
  *
  *  @param[out] devPtr Device Pointer mapped to passed host pointer
- *  @param[in]  hstPtr Host Pointer allocated through hipHostAlloc
+ *  @param[in]  hstPtr Host Pointer allocated through hipHostMalloc
  *  @param[in]  flags Flags to be passed for extension
  *
  *  @return #hipSuccess, #hipErrorInvalidValue, #hipErrorOutOfMemory
  *
- *  @see hipSetDeviceFlags, hipHostAlloc
+ *  @see hipSetDeviceFlags, hipHostMalloc
  */
 hipError_t hipHostGetDevicePointer(void** devPtr, void* hstPtr, unsigned int flags);
 /**
  *  @brief Return flags associated with host pointer
  *
  *  @param[out] flagsPtr Memory location to store flags
- *  @param[in]  hostPtr Host Pointer allocated through hipHostAlloc
+ *  @param[in]  hostPtr Host Pointer allocated through hipHostMalloc
  *  @return #hipSuccess, #hipErrorInvalidValue
  *
- *  @see hipHostAlloc
+ *  @see hipHostMalloc
  */
 hipError_t hipHostGetFlags(unsigned int* flagsPtr, void* hostPtr);
 /**
@@ -3934,8 +3898,8 @@ hipError_t hipHostUnregister(void* hostPtr);
  *
  *  @return Error code
  *
- *  @see hipMalloc, hipFree, hipMallocArray, hipFreeArray, hipFreeHost, hipMalloc3D,
- * hipMalloc3DArray, hipHostAlloc
+ *  @see hipMalloc, hipFree, hipMallocArray, hipFreeArray, hipHostFree, hipMalloc3D,
+ * hipMalloc3DArray, hipHostMalloc
  */
 hipError_t hipMallocPitch(void** ptr, size_t* pitch, size_t width, size_t height);
 /**
@@ -3957,8 +3921,8 @@ hipError_t hipMallocPitch(void** ptr, size_t* pitch, size_t width, size_t height
  *
  *  @return Error code
  *
- *  @see hipMalloc, hipFree, hipMallocArray, hipFreeArray, hiptFreeHost, hipMalloc3D,
- * hipMalloc3DArray, hipHostAlloc
+ *  @see hipMalloc, hipFree, hipMallocArray, hipFreeArray, hipHostFree, hipMalloc3D,
+ * hipMalloc3DArray, hipHostMalloc
  */
 hipError_t hipMemAllocPitch(hipDeviceptr_t* dptr, size_t* pitch, size_t widthInBytes, size_t height,
    unsigned int elementSizeBytes);
@@ -3970,10 +3934,10 @@ hipError_t hipMemAllocPitch(hipDeviceptr_t* dptr, size_t* pitch, size_t widthInB
  *  @param[in] ptr Pointer to memory to be freed
  *  @return #hipSuccess
  *  @return #hipErrorInvalidDevicePointer (if pointer is invalid, including host pointers allocated
- * with hipHostAlloc)
+ * with hipHostMalloc)
  *
- *  @see hipMalloc, hipMallocPitch, hipMallocArray, hipFreeArray, hipFreeHost, hipMalloc3D,
- * hipMalloc3DArray, hipHostAlloc
+ *  @see hipMalloc, hipMallocPitch, hipMallocArray, hipFreeArray, hipHostFree, hipMalloc3D,
+ * hipMalloc3DArray, hipHostMalloc
  */
 hipError_t hipFree(void* ptr);
 /**
@@ -4003,8 +3967,7 @@ hipError_t hipFreeHost(void* ptr);
  * hipMalloc)
  *
  *  @see hipMalloc, hipMallocPitch, hipFree, hipMallocArray, hipFreeArray, hipMalloc3D,
- * hipMalloc3DArray, hipHostAlloc
- * 
+ * hipMalloc3DArray, hipHostMalloc
  */
 hipError_t hipHostFree(void* ptr);
 /**
@@ -4410,7 +4373,7 @@ hipError_t hipMemcpyFromSymbolAsync(void* dst, const void* symbol,
  *  @brief Copy data from src to dst asynchronously.
  *
  *  @warning If host or dest are not pinned, the memory copy will be performed synchronously.  For
- * best performance, use hipHostAlloc to allocate host memory that is transferred asynchronously.
+ * best performance, use hipHostMalloc to allocate host memory that is transferred asynchronously.
  *
  *  @warning on HCC hipMemcpyAsync does not support overlapped H2D and D2H copies.
  *  For hipMemcpy, the copy is always performed by the device associated with the specified stream.
@@ -4624,7 +4587,7 @@ hipError_t hipMemPtrGetInfo(void* ptr, size_t* size);
  *  @param[in]   flags  Requested properties of allocated array
  *  @return      #hipSuccess, #hipErrorOutOfMemory
  *
- *  @see hipMalloc, hipMallocPitch, hipFree, hipFreeArray, hipHostAlloc, hipFreeHost
+ *  @see hipMalloc, hipMallocPitch, hipFree, hipFreeArray, hipHostMalloc, hipHostFree
  */
 hipError_t hipMallocArray(hipArray_t* array, const hipChannelFormatDesc* desc, size_t width,
                           size_t height __dparm(0), unsigned int flags __dparm(hipArrayDefault));
@@ -4677,7 +4640,7 @@ hipError_t hipMalloc3D(hipPitchedPtr* pitchedDevPtr, hipExtent extent);
  *  @param[in]  array  Pointer to array to free
  *  @return     #hipSuccess, #hipErrorInvalidValue, #hipErrorNotInitialized
  *
- *  @see hipMalloc, hipMallocPitch, hipFree, hipMallocArray, hipHostAlloc, hipFreeHost
+ *  @see hipMalloc, hipMallocPitch, hipFree, hipMallocArray, hipHostMalloc, hipHostFree
  */
 hipError_t hipFreeArray(hipArray_t array);
 /**
@@ -4689,7 +4652,7 @@ hipError_t hipFreeArray(hipArray_t array);
  *  @param[in]   flags  Requested properties of allocated array
  *  @return      #hipSuccess, #hipErrorOutOfMemory
  *
- *  @see hipMalloc, hipMallocPitch, hipFree, hipFreeArray, hipHostAlloc, hipFreeHost
+ *  @see hipMalloc, hipMallocPitch, hipFree, hipFreeArray, hipHostMalloc, hipHostFree
  */
 hipError_t hipMalloc3DArray(hipArray_t* array, const struct hipChannelFormatDesc* desc,
                             struct hipExtent extent, unsigned int flags);
@@ -9412,23 +9375,6 @@ static inline hipError_t hipMallocPitch(T** devPtr, size_t* pitch, size_t width,
     return hipMallocPitch((void**)devPtr, pitch, width, height);
 }
 /**
- * @brief: C++ wrapper for hipExtHostAlloc
- * @ingroup Memory
- * Provide an override to automatically typecast the pointer type from void**, and also provide a
- * default for the flags.
- *
- * __HIP_DISABLE_CPP_FUNCTIONS__ macro can be defined to suppress these
- * wrappers. It is useful for applications which need to obtain decltypes of
- * HIP runtime APIs.
- *
- * @see hipExtHostAlloc
- */
-template <class T>
-static inline hipError_t hipExtHostAlloc(T** ptr, size_t size,
-                                       unsigned int flags = hipHostAllocDefault) {
-    return hipExtHostAlloc((void**)ptr, size, flags);
-}
-/**
  * @brief: C++ wrapper for hipHostMalloc
  * @ingroup Memory
  * Provide an override to automatically typecast the pointer type from void**, and also provide a
@@ -9442,10 +9388,9 @@ static inline hipError_t hipExtHostAlloc(T** ptr, size_t size,
  */
 template <class T>
 static inline hipError_t hipHostMalloc(T** ptr, size_t size,
-                                       unsigned int flags = hipHostAllocDefault) {
+                                       unsigned int flags = hipHostMallocDefault) {
     return hipHostMalloc((void**)ptr, size, flags);
 }
-
 /**
  * @brief: C++ wrapper for hipHostAlloc
  * @ingroup Memory
