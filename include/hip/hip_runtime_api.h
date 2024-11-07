@@ -8563,7 +8563,7 @@ hipError_t hipDestroySurfaceObject(hipSurfaceObject_t surfaceObject);
 #ifdef __cplusplus
 #if defined(__clang__) && defined(__HIP__)
 template <typename T>
-static hipError_t __host__ inline hipOccupancyMaxPotentialBlockSize(int* gridSize, int* blockSize,template <typename T>
+static hipError_t __host__ inline hipOccupancyMaxPotentialBlockSize(int* gridSize, int* blockSize,
     T f, size_t dynSharedMemPerBlk = 0, int blockSizeLimit = 0) {
     return hipOccupancyMaxPotentialBlockSize(gridSize, blockSize, reinterpret_cast<const void*>(f),dynSharedMemPerBlk,blockSizeLimit);
 }
