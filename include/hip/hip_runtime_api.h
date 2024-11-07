@@ -3009,6 +3009,9 @@ hipError_t hipDrvPointerGetAttributes(unsigned int numAttributes, hipPointer_att
  *  @return #hipSuccess, #hipErrorInvalidDevice, #hipErrorInvalidValue
  *
  *  @see
+ *
+ *  @note  This API is currently not supported on Linux.
+ *
  */
 hipError_t hipImportExternalSemaphore(hipExternalSemaphore_t* extSem_out,
                                       const hipExternalSemaphoreHandleDesc* semHandleDesc);
@@ -3023,6 +3026,9 @@ hipError_t hipImportExternalSemaphore(hipExternalSemaphore_t* extSem_out,
  *  @return #hipSuccess, #hipErrorInvalidDevice, #hipErrorInvalidValue
  *
  *  @see
+ *
+ *  @note  This API is currently not supported on Linux.
+ *
  */
 hipError_t hipSignalExternalSemaphoresAsync(const hipExternalSemaphore_t* extSemArray,
                                             const hipExternalSemaphoreSignalParams* paramsArray,
@@ -3038,6 +3044,9 @@ hipError_t hipSignalExternalSemaphoresAsync(const hipExternalSemaphore_t* extSem
  *  @return #hipSuccess, #hipErrorInvalidDevice, #hipErrorInvalidValue
  *
  *  @see
+ *
+ *  @note  This API is currently not supported on Linux.
+ *
  */
 hipError_t hipWaitExternalSemaphoresAsync(const hipExternalSemaphore_t* extSemArray,
                                               const hipExternalSemaphoreWaitParams* paramsArray,
@@ -3050,6 +3059,9 @@ hipError_t hipWaitExternalSemaphoresAsync(const hipExternalSemaphore_t* extSemAr
  *  @return #hipSuccess, #hipErrorInvalidDevice, #hipErrorInvalidValue
  *
  *  @see
+ *
+ *  @note  This API is currently not supported on Linux.
+ *
  */
 hipError_t hipDestroyExternalSemaphore(hipExternalSemaphore_t extSem);
 
@@ -3062,6 +3074,7 @@ hipError_t hipDestroyExternalSemaphore(hipExternalSemaphore_t extSem);
 *  @return #hipSuccess, #hipErrorInvalidDevice, #hipErrorInvalidValue
 *
 *  @see
+*
 */
 hipError_t hipImportExternalMemory(hipExternalMemory_t* extMem_out, const hipExternalMemoryHandleDesc* memHandleDesc);
 /**
@@ -7277,40 +7290,6 @@ hipError_t hipGraphAddNode(hipGraphNode_t *pGraphNode, hipGraph_t graph,
                            hipGraphNodeParams *nodeParams);
 
 /**
- * @brief Return the flags of an executable graph.
- *
- * @param [in] graphExec - Executable graph to get the flags from.
- * @param [out] flags - Flags used to instantiate this executable graph.
- * @returns #hipSuccess, #hipErrorInvalidValue.
- * @warning This API is marked as Beta. While this feature is complete, it can
- *          change and might have outstanding issues.
- */
-hipError_t hipGraphExecGetFlags(hipGraphExec_t graphExec, unsigned long long* flags);
-
-/**
- * @brief Updates parameters of a graph's node.
- *
- * @param [in] node - Instance of the node to set parameters for.
- * @param [in] nodeParams - Pointer to the parameters to be set.
- * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidDeviceFunction, #hipErrorNotSupported.
- * @warning This API is marked as Beta. While this feature is complete, it can
- *          change and might have outstanding issues.
- */
-hipError_t hipGraphNodeSetParams(hipGraphNode_t node, hipGraphNodeParams *nodeParams);
-
-/**
- * @brief Updates parameters of an executable graph's node.
- *
- * @param [in] graphExec - Instance of the executable graph.
- * @param [in] node - Instance of the node to set parameters to.
- * @param [in] nodeParams - Pointer to the parameters to be set.
- * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidDeviceFunction, #hipErrorNotSupported.
- * @warning This API is marked as Beta. While this feature is complete, it can
- *          change and might have outstanding issues.
- */
-hipError_t hipGraphExecNodeSetParams(hipGraphExec_t graphExec, hipGraphNode_t node, hipGraphNodeParams* nodeParams);
-
-/**
  * @brief Destroys an executable graph
  *
  * @param [in] graphExec - Instance of executable graph to destroy.
@@ -8235,28 +8214,6 @@ hipError_t hipGraphExecExternalSemaphoresWaitNodeSetParams(hipGraphExec_t hGraph
                                                            const hipExternalSemaphoreWaitNodeParams* nodeParams);
 
 /**
- * @brief Gets a memcpy node's parameters.
- *
- * @param [in] hNode - instance of the node to get parameters from.
- * @param [out] nodeParams - pointer to the parameters.
- * @returns #hipSuccess, #hipErrorInvalidValue
- * @warning This API is marked as Beta. While this feature is complete, it can
- *          change and might have outstanding issues.
- */
-hipError_t hipDrvGraphMemcpyNodeGetParams(hipGraphNode_t hNode, HIP_MEMCPY3D* nodeParams);
-
-/**
- * @brief Sets a memcpy node's parameters.
- *
- * @param [in] hNode - instance of the node to Set parameters for.
- * @param [out] nodeParams - pointer to the parameters.
- * @returns #hipSuccess, #hipErrorInvalidValue
- * @warning This API is marked as Beta. While this feature is complete, it can
- *          change and might have outstanding issues.
- */
-hipError_t hipDrvGraphMemcpyNodeSetParams(hipGraphNode_t hNode, const HIP_MEMCPY3D* nodeParams);
-
-/**
  * @brief Creates a memset node and adds it to a graph.
  *
  * @param [out] phGraphNode - pointer to graph node to create.
@@ -8272,50 +8229,6 @@ hipError_t hipDrvGraphMemcpyNodeSetParams(hipGraphNode_t hNode, const HIP_MEMCPY
 hipError_t hipDrvGraphAddMemsetNode(hipGraphNode_t* phGraphNode, hipGraph_t hGraph,
                                  const hipGraphNode_t* dependencies, size_t numDependencies,
                                  const HIP_MEMSET_NODE_PARAMS* memsetParams, hipCtx_t ctx);
-
-/**
- * @brief Creates a memory free node and adds it to a graph
- *
- * @param [out] phGraphNode - Pointer to the graph node to create and add to the graph
- * @param [in]  hGraph - Instance of the graph the node to be added
- * @param [in]  dependencies - Const pointer to the node dependencies
- * @param [in]  numDependencies - The number of dependencies
- * @param [in]  dptr - Pointer to the memory to be freed
- * @returns #hipSuccess, #hipErrorInvalidValue
- * @warning This API is marked as Beta. While this feature is complete, it can
- *          change and might have outstanding issues.
- */
-hipError_t hipDrvGraphAddMemFreeNode(hipGraphNode_t* phGraphNode, hipGraph_t hGraph,
-                                  const hipGraphNode_t* dependencies, size_t numDependencies,
-                                  hipDeviceptr_t dptr);
-
-/**
- * @brief Sets the parameters for a memcpy node in the given graphExec.
- *
- * @param [in] hGraphExec - instance of the executable graph with the node.
- * @param [in] hNode - instance of the node to set parameters to.
- * @param [in] copyParams - const pointer to the memcpy node params.
- * @param [in] ctx - cotext related to current device.
- * @returns #hipSuccess, #hipErrorInvalidValue
- * @warning This API is marked as Beta. While this feature is complete, it can
- *          change and might have outstanding issues.
- */
-hipError_t hipDrvGraphExecMemcpyNodeSetParams(hipGraphExec_t hGraphExec, hipGraphNode_t hNode,
-                                   const HIP_MEMCPY3D* copyParams, hipCtx_t ctx);
-
-/**
- * @brief Sets the parameters for a memset node in the given graphExec.
- *
- * @param [in] hGraphExec - instance of the executable graph with the node.
- * @param [in] hNode - instance of the node to set parameters to.
- * @param [in] memsetParams - pointer to the parameters.
- * @param [in] ctx - cotext related to current device.
- * @returns #hipSuccess, #hipErrorInvalidValue
- * @warning This API is marked as Beta. While this feature is complete, it can
- *          change and might have outstanding issues.
- */
-hipError_t hipDrvGraphExecMemsetNodeSetParams(hipGraphExec_t hGraphExec, hipGraphNode_t hNode,
-                                   const HIP_MEMSET_NODE_PARAMS* memsetParams, hipCtx_t ctx);
 
 // doxygen end graph API
 /**
@@ -8947,7 +8860,7 @@ return hipOccupancyMaxPotentialBlockSize(gridSize, blockSize,(hipFunction_t)kern
  * @ingroup ModuleCooperativeG
  *
  * \tparam T                  The type of the kernel function.
- *
+ * 
  * @param [in] f              Kernel function to launch.
  * @param [in] gridDim        Grid dimensions specified as multiple of blockDim.
  * @param [in] blockDim       Block dimensions specified in work-items.
