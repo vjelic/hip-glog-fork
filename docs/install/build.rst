@@ -21,6 +21,12 @@ Check and install ``CppHeaderParser`` package using the command:
 
    pip3 install CppHeaderParser
 
+Install ``ROCm LLVM`` package using the command:
+
+.. code-block:: shell
+
+   apt-get install rocm-llvm-dev
+
 
 .. _Building the HIP runtime:
 
@@ -54,9 +60,9 @@ Set the repository branch using the variable: ``ROCM_BRANCH``. For example, for 
             git clone -b "$ROCM_BRANCH" https://github.com/ROCm/clr.git
             git clone -b "$ROCM_BRANCH" https://github.com/ROCm/hip.git
 
-         CLR (Common Language Runtime) repository includes ROCclr, HIPAMD and OpenCL.
+         CLR (Compute Language Runtime) repository includes ROCclr, HIPAMD and OpenCL.
 
-         ROCclr (Radeon Open Compute Common Language Runtime) is a virtual device interface which
+         ROCclr (ROCm Compute Language Runtime) is a virtual device interface which
          is defined on the AMD platform. HIP runtime uses ROCclr to interact with different backends.
 
          HIPAMD provides implementation specifically for HIP on the AMD platform.
@@ -86,15 +92,15 @@ Set the repository branch using the variable: ``ROCM_BRANCH``. For example, for 
          .. note::
 
             Note, if you don't specify ``CMAKE_INSTALL_PREFIX``, the HIP runtime is installed at
-            ``<ROCM_PATH>/hip``.
+            ``<ROCM_PATH>``.
 
             By default, release version of HIP is built. If need debug version, you can put the option ``CMAKE_BUILD_TYPE=Debug`` in the command line.
 
          Default paths and environment variables:
 
-            * HIP is installed into ``<ROCM_PATH>/hip``. This can be overridden by setting the ``HIP_PATH``
+            * HIP is installed into ``<ROCM_PATH>``. This can be overridden by setting the ``INSTALL_PREFIX`` as the command option.
                environment variable.
-            * HSA is in ``<ROCM_PATH>/hsa``. This can be overridden by setting the ``HSA_PATH``
+            * HSA is in ``<ROCM_PATH>``. This can be overridden by setting the ``HSA_PATH``
                environment variable.
             * Clang is in ``<ROCM_PATH>/llvm/bin``. This can be overridden by setting the
                ``HIP_CLANG_PATH`` environment variable.
@@ -104,7 +110,7 @@ Set the repository branch using the variable: ``ROCM_BRANCH``. For example, for 
                use the tools.
             * Optionally, you can set ``HIPCC_VERBOSE=7`` to output the command line for compilation.
 
-         After you run the ``make install`` command, make sure ``HIP_PATH`` points to ``$PWD/install/hip``.
+         After you run the ``make install`` command, HIP is installed to ``<ROCM_PATH>`` by default, or ``$PWD/install/hip`` while ``INSTALL_PREFIX`` is defined.
 
          #. Generate a profiling header after adding/changing a HIP API.
 

@@ -37,7 +37,7 @@ HIP releases are typically naming convention for each ROCM release to help diffe
 
 * [Installation](docs/install/install.rst)
 * [HIP FAQ](docs/how-to/faq.md)
-* [HIP Kernel Language](docs/reference/kernel_language.rst)
+* [HIP C++ Language Extensions](docs/reference/cpp_language_extensions.rst)
 * [HIP Porting Guide](docs/how-to/hip_porting_guide.md)
 * [HIP Porting Driver Guide](docs/how-to/hip_porting_driver_api.md)
 * [HIP Programming Guide](docs/how-to/programming_manual.md)
@@ -88,7 +88,7 @@ hipMemcpy(C_h, C_d, Nbytes, hipMemcpyDeviceToHost);
 
 The HIP kernel language defines builtins for determining grid and block coordinates, math functions, short vectors,
 atomics, and timer functions.
-It also specifies additional defines and keywords for function types, address spaces, and optimization controls (See the [HIP Kernel Language](docs/reference/kernel_language.rst) for a full description).
+It also specifies additional defines and keywords for function types, address spaces, and optimization controls (See the [HIP C++ Language Extensions](docs/reference/cpp_language_extensions.rst) for a full description).
 Here's an example of defining a simple 'vector_square' kernel.
 
 ```cpp
@@ -115,7 +115,7 @@ HIP C++ code can be compiled with either,
   functions and thus has very low overhead - developers coding in HIP should expect the same performance as coding in native CUDA.  The code is then
   compiled with nvcc, the standard C++ compiler provided with the CUDA SDK.  Developers can use any tools supported by the CUDA SDK including the CUDA
   profiler and debugger.
-* On the AMD ROCm platform, HIP provides a header and runtime library built on top of HIP-Clang compiler in the repository [Common Language Runtime (CLR)](https://github.com/ROCm/clr).  The HIP runtime implements HIP streams, events, and memory APIs,
+* On the AMD ROCm platform, HIP provides a header and runtime library built on top of HIP-Clang compiler in the repository [Compute Language Runtime (CLR)](https://github.com/ROCm/clr).  The HIP runtime implements HIP streams, events, and memory APIs,
   and is a object library that is linked with the application.  The source code for all headers and the library implementation is available on GitHub.
   HIP developers on ROCm can use AMD's [ROCgdb](https://github.com/ROCm/ROCgdb) for debugging and profiling.
 

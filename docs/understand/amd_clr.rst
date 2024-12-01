@@ -5,16 +5,16 @@
 .. _AMD_Compute_Language_Runtimes:
 
 *******************************************************************************
-AMD Common Language Runtimes (CLR)
+AMD compute language runtimes (CLR)
 *******************************************************************************
 
 CLR contains source codes for AMD's compute languages runtimes: ``HIP`` and ``OpenCL™``.
 CLR is the part of HIP runtime which is supported on the AMD ROCm platform, it provides a header and runtime library built on top of HIP-Clang compiler.
 For developers and users, CLR implements HIP runtime APIs including streams, events, and memory APIs, which is a object library that is linked with the application.
-The source codes for all headers and the library implementation are available on GitHub in the `clr repository <https://github.com/ROCm/clr>`_.
+The source codes for all headers and the library implementation are available on GitHub in the `CLR repository <https://github.com/ROCm/clr>`_.
 
 
-Project Organisation
+Project organization
 ====================
 
 CLR includes the following source code,
@@ -23,7 +23,7 @@ CLR includes the following source code,
 
 * ``opencl`` - contains implementation of `OpenCL™ <https://www.khronos.org/opencl/>`_ on AMD platform. It is hosted at `clr/opencl <https://github.com/ROCm/clr/tree/develop/opencl>`_.
 
-* ``rocclr`` - contains common runtime used in `HIP` and `OpenCL™`. This is hosted at `clr/rocclr <https://github.com/ROCm/clr/tree/develop/rocclr>`_.
+* ``rocclr`` - contains ROCm compute runtime used in `HIP` and `OpenCL™`. This is hosted at `clr/rocclr <https://github.com/ROCm/clr/tree/develop/rocclr>`_.
 
 
 How to build/install
