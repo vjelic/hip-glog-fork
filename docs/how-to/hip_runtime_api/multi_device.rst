@@ -20,11 +20,7 @@ can leverage the full computational power available. Typically, applications
 list devices and their properties for deployment planning, and also make
 dynamic selections during runtime to ensure optimal performance.
 
-If the application does not assign a specific GPU, the runtime typically
-assigns one automatically based on factors such as availability, performance,
-memory, and efficiency. As a result, the runtime might choose the least
-utilized GPU, the one best suited for the task, the GPU with adequate memory,
-or the most energy-efficient option.
+If the application does not define a specific GPU, device 0 is selected.
 
 .. code-block:: cpp
 
