@@ -2271,22 +2271,18 @@ hipError_t hipChooseDevice(int* device, const hipDeviceProp_t* prop);
 hipError_t hipExtGetLinkTypeAndHopCount(int device1, int device2, uint32_t* linktype, uint32_t* hopcount);
 // TODO: implement IPC apis
 /**
- * @brief Gets an interprocess memory handle for an existing device memory
- *          allocation
+ * @brief Gets an interprocess memory handle for an existing device memory allocation.
  *
- * Takes a pointer to the base of an existing device memory allocation created
- * with hipMalloc and exports it for use in another process. This is a
- * lightweight operation and may be called multiple times on an allocation
- * without adverse effects.
+ * Takes a pointer to the base of an existing device memory allocation created with ::hipMalloc
+ * and exports it for use in another process. This is a lightweight operation and may be called
+ * multiple times on an allocation without adverse effects.
  *
- * If a region of memory is freed with hipFree and a subsequent call
- * to hipMalloc returns memory with the same device address,
- * hipIpcGetMemHandle will return a unique handle for the
- * new memory.
+ * If a region of memory is freed with ::hipFree and a subsequent call to ::hipMalloc returns
+ * memory with the same device address, ::hipIpcGetMemHandle will return a unique handle for
+ * the new memory.
  *
- * @param handle - Pointer to user allocated hipIpcMemHandle to return
- *                    the handle in.
- * @param devPtr - Base pointer to previously allocated device memory
+ * @param handle - Pointer to user allocated hipIpcMemHandle to return the handle in.
+ * @param devPtr - Base pointer to previously allocated device memory.
  *
  * @returns #hipSuccess, #hipErrorInvalidHandle, #hipErrorOutOfMemory, #hipErrorMapFailed
  *
@@ -2295,52 +2291,47 @@ hipError_t hipExtGetLinkTypeAndHopCount(int device1, int device2, uint32_t* link
  */
 hipError_t hipIpcGetMemHandle(hipIpcMemHandle_t* handle, void* devPtr);
 /**
- * @brief Opens an interprocess memory handle exported from another process
- *          and returns a device pointer usable in the local process.
+ * @brief Opens an interprocess memory handle exported from another process and returns a device
+ * pointer usable in the local process.
  *
- * Maps memory exported from another process with hipIpcGetMemHandle into
- * the current device address space. For contexts on different devices
- * hipIpcOpenMemHandle can attempt to enable peer access between the
- * devices as if the user called hipDeviceEnablePeerAccess. This behavior is
- * controlled by the hipIpcMemLazyEnablePeerAccess flag.
- * hipDeviceCanAccessPeer can determine if a mapping is possible.
+ * Maps memory exported from another process with ::hipIpcGetMemHandle into the current device
+ * address space. For contexts on different devices ::hipIpcOpenMemHandle can attempt to enable
+ * peer access between the devices like the user called ::hipDeviceEnablePeerAccess.
+ * This behavior is controlled by the flag #hipIpcMemLazyEnablePeerAccess.
+ * The API ::hipDeviceCanAccessPeer can determine if a mapping is possible.
  *
- * Contexts that may open hipIpcMemHandles are restricted in the following way.
- * hipIpcMemHandles from each device in a given process may only be opened
- * by one context per device per other process.
+ * hipIpcMemHandles from each device in a given process may only be opened by one context per
+ * device per other process.
  *
- * Memory returned from hipIpcOpenMemHandle must be freed with
- * hipIpcCloseMemHandle.
+ * Memory returned from ::hipIpcOpenMemHandle must be freed with ::hipIpcCloseMemHandle.
  *
- * Calling hipFree on an exported memory region before calling
- * hipIpcCloseMemHandle in the importing context will result in undefined
- * behavior.
+ * Calling ::hipFree on an exported memory region before calling ::hipIpcCloseMemHandle in the
+ * importing context will result in undefined behavior.
  *
  * @param devPtr - Returned device pointer
  * @param handle - hipIpcMemHandle to open
  * @param flags  - Flags for this operation. Must be specified as hipIpcMemLazyEnablePeerAccess
  *
  * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidContext,
- *  #hipErrorInvalidDevicePointer
+ * #hipErrorInvalidDevicePointer
  *
  * @note During multiple processes, using the same memory handle opened by the current context,
- * there is no guarantee that the same device poiter will be returned in @p *devPtr.
+ * there is no guarantee that the same device pointer will be returned in @p *devPtr.
  * This is diffrent from CUDA.
+ *
  * @note This IPC memory related feature API on Windows may behave differently from Linux.
  *
  */
 hipError_t hipIpcOpenMemHandle(void** devPtr, hipIpcMemHandle_t handle, unsigned int flags);
 /**
- * @brief Close memory mapped with hipIpcOpenMemHandle
+ * @brief Close memory mapped with ::hipIpcOpenMemHandle
  *
- * Unmaps memory returnd by hipIpcOpenMemHandle. The original allocation
- * in the exporting process as well as imported mappings in other processes
- * will be unaffected.
+ * Unmaps memory returned by ::hipIpcOpenMemHandle. The original allocation in the exporting
+ * process as well as imported mappings in other processes will be unaffected.
  *
- * Any resources used to enable peer access will be freed if this is the
- * last mapping using them.
+ * Any resources used to enable peer access will be freed if this is the last mapping using them.
  *
- * @param devPtr - Device pointer returned by hipIpcOpenMemHandle
+ * @param devPtr - Device pointer returned by ::hipIpcOpenMemHandle
  *
  * @returns #hipSuccess, #hipErrorMapFailed, #hipErrorInvalidHandle
  *
@@ -2352,13 +2343,14 @@ hipError_t hipIpcCloseMemHandle(void* devPtr);
 /**
  * @brief Gets an opaque interprocess handle for an event.
  *
- * This opaque handle may be copied into other processes and opened with hipIpcOpenEventHandle.
- * Then hipEventRecord, hipEventSynchronize, hipStreamWaitEvent and hipEventQuery may be used in
- * either process. Operations on the imported event after the exported event has been freed with hipEventDestroy
- * will result in undefined behavior.
+ * The event is previously allocated with #hipEventInterprocess and #hipEventDisableTiming flags.
+ * The opaque interprocess handle may be copied into other processes and opened with
+ * ::hipIpcOpenEventHandle. Then ::hipEventRecord, ::hipEventSynchronize, ::hipStreamWaitEvent and
+ * ::hipEventQuery may be used in either process. After the exported event has been freed with
+ * ::hipEventDestroy, operations on the imported event will result in undefined behavior.
  *
- * @param[out]  handle Pointer to hipIpcEventHandle to return the opaque event handle
- * @param[in]   event  Event allocated with hipEventInterprocess and hipEventDisableTiming flags
+ * @param[out]  handle Pointer to #hipIpcEventHandle to return the opaque event handle
+ * @param[in]   event  Event allocated with #hipEventInterprocess and #hipEventDisableTiming flags
  *
  * @returns #hipSuccess, #hipErrorInvalidConfiguration, #hipErrorInvalidValue
  *
@@ -2368,15 +2360,16 @@ hipError_t hipIpcCloseMemHandle(void* devPtr);
 hipError_t hipIpcGetEventHandle(hipIpcEventHandle_t* handle, hipEvent_t event);
 
 /**
- * @brief Opens an interprocess event handles.
+ * @brief Opens an interprocess event handle.
  *
- * Opens an interprocess event handle exported from another process with hipIpcGetEventHandle. The returned
- * hipEvent_t behaves like a locally created event with the hipEventDisableTiming flag specified. This event
- * need be freed with hipEventDestroy. Operations on the imported event after the exported event has been freed
- * with hipEventDestroy will result in undefined behavior. If the function is called within the same process where
- * handle is returned by hipIpcGetEventHandle, it will return hipErrorInvalidContext.
+ * Opens an interprocess event handle exported from another process with ::hipIpcGetEventHandle.
+ * The returned #hipEvent_t behaves like a locally created event with the #hipEventDisableTiming
+ * flag specified. This event needs be freed with ::hipEventDestroy. After the exported event
+ * has been freed with ::hipEventDestroy, operations on the imported event will result in
+ * undefined behavior. If the input handle is from the same process, it will return
+ * #hipErrorInvalidContext.
  *
- * @param[out]  event  Pointer to hipEvent_t to return the event
+ * @param[out]  event  Pointer to hipEvent_t to return the imported event
  * @param[in]   handle The opaque interprocess handle to open
  *
  * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidContext
