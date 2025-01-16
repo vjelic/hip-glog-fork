@@ -1,4 +1,5 @@
 .*
+!.spellcheck.local.yaml
 !.gitignore
 *.o
 *.exe
