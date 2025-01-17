@@ -4,4 +4,4 @@ sources_md: &md_list
 
 sources_rst: &rst_list
   - *rst_global_list
-
+  - ['include/hip/*']
