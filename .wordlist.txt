@@ -16,7 +16,9 @@ blockDim
 blockIdx
 builtins
 Builtins
+bytesize
 CAS
+cerr
 clr
 compilable
 constexpr
@@ -34,9 +36,11 @@ decompositions
 denormal
 Dereferencing
 dll
+dptr
 DirectX
 EIGEN
 EIGEN's
+endl
 enqueue
 enqueues
 entrypoint
@@ -106,6 +110,8 @@ malloc
 MALU
 maxregcount
 MiB
+Memcpy
+memcpy
 memset
 multicore
 multigrid
@@ -118,6 +124,7 @@ NDRange
 nonnegative
 NOP
 Numa
+nullptr
 Nsight
 ocp
 omnitrace
