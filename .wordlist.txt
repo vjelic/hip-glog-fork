@@ -167,6 +167,7 @@ SOMA
 SPMV
 structhip
 structs
+struct's
 SYCL
 syntaxes
 texel
