@@ -3,6 +3,7 @@
 *.o
 *.exe
 *.swp
+__pycache__
 lib
 packages
 build
