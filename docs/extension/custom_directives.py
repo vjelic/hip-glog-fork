@@ -1,14 +1,16 @@
 import os
-import csv
 import re
+from openpyxl import load_workbook
 from docutils.parsers.rst import Directive
 
-class CsvToListTable(Directive):
+
+class ExcelToListTable(Directive):
     required_arguments = 0
     optional_arguments = 1
     final_argument_whitespace = True
     option_spec = {
         'file': str,
+        'sheet': str,  # Excel sheet name
         'include-header': lambda x: x.lower() == 'true',  # Boolean option
         'rows': str,  # Comma-separated list of row ranges and indices
         'widths': lambda x: [int(i) for i in x.split(',')],
@@ -28,31 +30,43 @@ class CsvToListTable(Directive):
 
         # Check if the file exists
         if not os.path.exists(full_file_path):
-            raise self.error(f"CSV file {full_file_path} does not exist.")
+            raise self.error(f"Excel file {full_file_path} does not exist.")
 
+        sheet_name = self.options.get('sheet')
         include_header = self.options.get('include-header', True)
         rows_option = self.options.get('rows', '')
         widths = self.options.get('widths', [])
         columns = self.options.get('columns', [])
 
-        # Parse the `:rows:` option
-        selected_rows = self.parse_rows_option(rows_option)
+        # Read Excel file and process rows
+        wb = load_workbook(full_file_path, data_only=True)
+        if sheet_name:
+            if sheet_name not in wb.sheetnames:
+                raise self.error(f"Sheet {sheet_name} does not exist in the Excel file.")
+            sheet = wb[sheet_name]
+        else:
+            sheet = wb.active  # Use the active sheet if none specified
 
-        # Read CSV and process rows
-        with open(full_file_path, newline='', encoding='utf-8') as csvfile:
-            reader = csv.reader(csvfile)
-            data = list(reader)
+        data = self.read_sheet_data(sheet)
 
         if not data:
-            raise self.error(f"CSV file {full_file_path} is empty or could not be read.")
+            raise self.error(f"Excel file {full_file_path} is empty or could not be read.")
+
+        # Determine total rows in the sheet
+        total_rows = len(data)
+
+        # Parse the `:rows:` option
+        selected_rows = self.parse_rows_option(rows_option, total_rows)
 
         # Include the header if specified
         if include_header:
             headers = data[0]
-            table_data = [data[i] for i in selected_rows if 0 <= i < len(data)]
+            # Exclude the header row (row 0) from selected rows for data
+            table_data = [data[i] for i in selected_rows if i > 0 and i < len(data)]
         else:
-            headers = []
-            table_data = [data[i] for i in selected_rows if 0 <= i < len(data)]
+            headers = []  # No headers
+            # Include all rows as data
+            table_data = [data[i] for i in selected_rows if i < len(data)]
 
         # If columns are specified, filter the columns
         if columns:
@@ -66,12 +80,14 @@ class CsvToListTable(Directive):
         self.state_machine.insert_input(list_table_rst.splitlines(), full_file_path)
         return []
 
-    def parse_rows_option(self, rows_option):
+    def parse_rows_option(self, rows_option, total_rows):
         """
         Parse the `:rows:` option and return a list of selected row indices.
+        If no `:rows:` option is provided, include all rows.
         """
         if not rows_option:
-            return []
+            # Default to all rows (excluding the header row if `include-header` is True)
+            return list(range(total_rows))
 
         row_indices = set()
         ranges = rows_option.split(',')
@@ -85,8 +101,18 @@ class CsvToListTable(Directive):
 
         return sorted(row_indices)
 
+
+    def read_sheet_data(self, sheet):
+        """
+        Read data from the specified sheet and return it as a list of rows.
+        """
+        data = []
+        for row in sheet.iter_rows(values_only=True):
+            data.append([str(cell) if cell is not None else '' for cell in row])
+        return data
+
     def generate_list_table(self, headers, table_data, widths):
-        """Generate RST list-table content from CSV data."""
+        """Generate RST list-table content from Excel data."""
         rows = []
         rows.extend([headers] if headers else [])
         rows.extend(table_data)
@@ -119,7 +145,7 @@ class CsvToListTable(Directive):
         Format a cell's content for multi-line text handling, including automatic line break detection.
         """
         # Replace common line-break markers with actual line breaks
-        for marker in ["|br|", "\\n", "|"]:
+        for marker in ["|br|", "\\n", "|", "&#10;"]:
             cell = cell.replace(marker, "\n")
 
         # Split the cell content into lines
@@ -131,4 +157,4 @@ class CsvToListTable(Directive):
 
 
 def setup(app):
-    app.add_directive('csv-to-list-table', CsvToListTable)
+    app.add_directive('excel-to-list-table', ExcelToListTable)

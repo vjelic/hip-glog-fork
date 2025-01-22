@@ -273,9 +273,9 @@ HIP environment variable summary
 
 Here are some of the more commonly used environment variables:
 
-.. csv-to-list-table::
-   :file: data/reference/env_variables.csv
-   :rows: 2-11
+.. excel-to-list-table::
+   :file: data/reference/env_variables.xlsx
+   :sheet: Debug
 
 General debugging tips
 ======================================================
