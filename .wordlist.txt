@@ -145,6 +145,7 @@ rocgdb
 ROCm's
 rocTX
 roundtrip
+rst
 RTC
 RTTI
 rvalue
