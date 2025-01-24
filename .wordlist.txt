@@ -153,6 +153,7 @@ sceneries
 shaders
 SIMT
 sinewave
+sinf
 SOMA
 SPMV
 structs
@@ -166,6 +167,8 @@ templated
 toolkits
 transfering
 typedefs
+ULP
+ULPs
 unintuitive
 UMM
 unmap
