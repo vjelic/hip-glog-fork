@@ -107,7 +107,6 @@ subtrees:
           - file: reference/hip_runtime_api/global_defines_enums_structs_files/driver_types
           - file: doxygen/html/annotated
           - file: doxygen/html/files
-  - file: reference/virtual_rocr
   - file: reference/math_api
   - file: reference/env_variables
   - file: reference/api_syntax
