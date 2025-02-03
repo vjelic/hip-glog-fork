@@ -42,7 +42,6 @@ The HIP documentation is organized into the following categories:
 :::{grid-item-card} Reference
 
 * [HIP runtime API](./reference/hip_runtime_api_reference)
-* [HSA runtime API for ROCm](./reference/virtual_rocr)
 * [HIP math API](./reference/math_api)
 * [HIP environment variables](./reference/env_variables)
 * [CUDA to HIP API Function Comparison](./reference/api_syntax)

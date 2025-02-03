@@ -25,6 +25,10 @@ issue of reallocation when the extra buffer runs out.
 Virtual memory management solves these memory management problems. It helps to
 reduce memory usage and unnecessary ``memcpy`` calls.
 
+HIP virtual memory management is built on top of HSA, which provides low-level
+access to AMD GPU memory. For more details on the underlying HSA runtime,
+see :doc:`ROCr documentation <rocr-runtime:index>`
+
 .. _memory_allocation_virtual_memory:
 
 Memory allocation
@@ -43,7 +47,7 @@ Virtual memory management support
 ---------------------------------
 
 The first step is to check if the targeted device or GPU supports virtual memory management.
-Use the :cpp:func:`hipDeviceGetAttribute` function to get the 
+Use the :cpp:func:`hipDeviceGetAttribute` function to get the
 ``hipDeviceAttributeVirtualMemoryManagementSupported`` attribute for a specific GPU, as shown in the following example.
 
 .. code-block:: cpp
@@ -246,7 +250,7 @@ The virtual memory management example follows these steps:
     int main() {
 
         int currentDev = 0;
-    
+
         // Step 1: Check virtual memory management support on device 0
         int vmm = 0;
         HIP_CHECK(
@@ -261,10 +265,10 @@ The virtual memory management example follows these steps:
             std::cout << "GPU 0 doesn't support virtual memory management.";
             return 0;
         }
-        
+
         // Size of memory to allocate
         size_t size = 4 * 1024;
-        
+
         // Step 2: Allocate physical memory
         hipMemGenericAllocationHandle_t allocHandle;
         hipMemAllocationProp prop = {};
@@ -279,7 +283,7 @@ The virtual memory management example follows these steps:
                 hipMemAllocationGranularityMinimum));
         size_t padded_size = ROUND_UP(size, granularity);
         HIP_CHECK(hipMemCreate(&allocHandle, padded_size * 2, &prop, 0));
-        
+
         // Step 3: Reserve a virtual memory address range
         void* virtualPointer = nullptr;
         HIP_CHECK(hipMemAddressReserve(&virtualPointer, padded_size, granularity, nullptr, 0));
@@ -306,12 +310,12 @@ The virtual memory management example follows these steps:
         } else {
             std::cout << "Failure. Value: " << result << std::endl;
         }
-            
+
         // Step 7: Launch kernels
         // Launch zeroAddr kernel
         zeroAddr<<<1, 1>>>((int*)virtualPointer);
         HIP_CHECK(hipDeviceSynchronize());
-    
+
         // Check zeroAddr kernel result
         result = 1;
         HIP_CHECK(hipMemcpy(&result, virtualPointer, sizeof(int), hipMemcpyDeviceToHost));
@@ -354,7 +358,7 @@ Multiple virtual memory mappings can be created using multiple calls to
 :cpp:func:`hipMemMap` on the same memory allocation.
 
 .. note::
-    
+
     RDNA cards may not produce correct results, if users access two different
     virtual addresses that map to the same physical address. In this case, the
     L1 data caches will be incoherent due to the virtual-to-physical aliasing.
