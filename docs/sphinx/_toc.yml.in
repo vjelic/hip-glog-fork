@@ -106,6 +106,7 @@ subtrees:
           - file: doxygen/html/annotated
           - file: doxygen/html/files
   - file: reference/math_api
+  - file: reference/complex_math_api
   - file: reference/env_variables
   - file: reference/api_syntax
   - file: reference/deprecated_api_list
