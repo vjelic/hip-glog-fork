@@ -46,12 +46,13 @@ The amount of warps that can reside concurrently on a CU, known
 as occupancy, is determined by the warp's resource usage of registers and
 shared memory.
 
+.. _gcn_cu:
+
 .. figure:: ../data/understand/hardware_implementation/compute_unit.svg
     :alt: Diagram depicting the general structure of a compute unit of an AMD
           GPU.
 
-    An AMD Graphics Core Next (GCN) CU. The CDNA and RDNA CUs are based on
-    variations of the GCN CU.
+    AMD Graphics Core Next (GCN) CU
 
 On AMD GCN GPUs the basic structure of a CU is:
 
@@ -103,6 +104,8 @@ The scalar unit performs instructions that are uniform within a warp. It
 thereby improves efficiency and reduces the pressure on the vector ALUs and the
 vector register file.
 
+.. _cdna3_cu:
+
 CDNA architecture
 =================
 
@@ -121,6 +124,8 @@ multiply-accumulate operations for
         memory.
 
   Block Diagram of a CDNA3 Compute Unit.
+
+.. _rdna3_cu:
 
 RDNA architecture
 =================
