@@ -12,8 +12,8 @@ The GPU isolation environment variables in HIP are collected in the following ta
     :header-rows: 1
     :widths: 70,30
 
-    * - **Environment variable**
-      - **Value**
+    * - Environment variable
+      - Value
 
     * - | ``ROCR_VISIBLE_DEVICES``
         | A list of device indices or UUIDs that will be exposed to applications.
@@ -37,8 +37,8 @@ The profiling environment variables in HIP are collected in the following table.
     :header-rows: 1
     :widths: 70,30
 
-    * - **Environment variable**
-      - **Value**
+    * - Environment variable
+      - Value
 
     * - | ``HSA_CU_MASK``
         | Sets the mask on a lower level of queue creation in the driver,
@@ -66,9 +66,9 @@ The debugging environment variables in HIP are collected in the following table.
     :header-rows: 1
     :widths: 35,14,51
 
-    * - **Environment variable**
-      - **Default value**
-      - **Value**
+    * - Environment variable
+      - Default value
+      - Value
 
     * - | ``AMD_LOG_LEVEL``
         | Enables HIP log on various level.
@@ -109,6 +109,13 @@ The debugging environment variables in HIP are collected in the following table.
         | 0x40000: Memory pool allocation, including memory in graphs.
         | 0x80000: Timestamp details.
         | 0xFFFFFFFF: Log always even mask flag is zero.
+
+    * - | ``HIP_FORCE_DEV_KERNARG``
+        | Forces kernel arguments to be stored in device memory to reduce latency.
+        | Can improve performance by 2-3 µs for some kernels.
+      - ``0``
+      - | 0: Disable
+        | 1: Enable
 
     * - | ``HIP_LAUNCH_BLOCKING``
         | Used for serialization on kernel execution.
@@ -169,9 +176,9 @@ following table.
     :header-rows: 1
     :widths: 35,14,51
 
-    * - **Environment variable**
-      - **Default value**
-      - **Value**
+    * - Environment variable
+      - Default value
+      - Value
 
     * - | ``HIP_HIDDEN_FREE_MEM``
         | Amount of memory to hide from the free memory reported by hipMemGetInfo.
@@ -212,6 +219,19 @@ following table.
       - ``1``
       - | 0: Disable
         | 1: Enable
+
+    * - | ``GPU_MAX_ALLOC_PERCENT``
+        | Restricts the total percentage of GPU memory that a single application can allocate.
+        | Critical for APU systems with shared CPU/GPU memory.
+      - None
+      - | Unit: Percentage
+        | Setting to 100 allows maximum memory use but increases Out-Of-Memory risk.
+
+    * - | ``GPU_SINGLE_ALLOC_PERCENT``
+        | Limits the maximum size of a single memory allocation as a percentage of GPU memory.
+      - None
+      - | Unit: Percentage
+        | Prevents single allocations from consuming all available GPU memory.
 
     * - | ``GPU_MAX_HEAP_SIZE``
         | Set maximum size of the GPU heap to % of board memory.
@@ -268,9 +288,9 @@ different features in HIP.
     :header-rows: 1
     :widths: 35,14,51
 
-    * - **Environment variable**
-      - **Default value**
-      - **Value**
+    * - Environment variable
+      - Default value
+      - Value
 
     * - | ``HIPRTC_COMPILE_OPTIONS_APPEND``
         | Sets compile options needed for ``hiprtc`` compilation.
