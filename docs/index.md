@@ -43,6 +43,7 @@ The HIP documentation is organized into the following categories:
 * [HIP runtime API](./reference/hip_runtime_api_reference)
 * [HIP math API](./reference/math_api)
 * [HIP environment variables](./reference/env_variables)
+* [HIP error codes](./reference/error_codes)
 * [CUDA to HIP API Function Comparison](./reference/api_syntax)
 * [List of deprecated APIs](./reference/deprecated_api_list)
 * [Low Precision Floating Point Types](./reference/low_fp_types)

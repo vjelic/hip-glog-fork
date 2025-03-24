@@ -108,6 +108,7 @@ subtrees:
           - file: doxygen/html/files
   - file: reference/math_api
   - file: reference/env_variables
+  - file: reference/error_codes
   - file: reference/api_syntax
   - file: reference/deprecated_api_list
     title: List of deprecated APIs
