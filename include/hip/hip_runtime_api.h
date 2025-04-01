@@ -2541,6 +2541,18 @@ hipError_t hipStreamWaitEvent(hipStream_t stream, hipEvent_t event, unsigned int
  * @see hipStreamCreateWithFlags
  */
 hipError_t hipStreamGetFlags(hipStream_t stream, unsigned int* flags);
+
+/**
+ * @brief Return signature of hw queue which this stream belong to.
+ *
+ * @param[in] stream stream to be queried
+ * @param[in,out] signature Pointer to an unsigned integer in which the stream's flags are returned
+ * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidHandle
+ *
+ * @returns #hipSuccess #hipErrorInvalidValue #hipErrorInvalidHandle
+ *
+ */
+hipError_t hipStreamGetHwQueueSignature(hipStream_t stream, uint64_t* signature);
 /**
  * @brief Query the priority of a stream.
  *
