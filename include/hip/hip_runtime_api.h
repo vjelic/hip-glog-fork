@@ -2097,6 +2097,18 @@ hipError_t hipDeviceSetSharedMemConfig(hipSharedMemConfig config);
  */
 hipError_t hipSetDeviceFlags(unsigned flags);
 /**
+ * device queue CallBack struct
+ */
+typedef void (*hipDeviceQueueCallback_t)(uint64_t signature, void* userData);
+/**
+ * @brief Adds a callback to the device wihch queue are belong to.
+ * @param[in] callback - The function to call once preceding stream operations are complete
+ * @param[in] userData - User specified data to be passed to the callback function
+ * @returns #hipSuccess, #hipErrorInvalidHandle, #hipErrorNotSupported
+ */
+hipError_t hipSetDeviceQueueCallback(hipDeviceQueueCallback_t callback, void* userData);
+
+/**
  * @brief Device which matches hipDeviceProp_t is returned
  *
  * @param [out] device Pointer of the device
