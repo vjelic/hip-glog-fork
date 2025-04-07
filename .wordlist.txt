@@ -12,6 +12,7 @@ backtrace
 Bitcode
 bitcode
 bitcodes
+bitmask
 blockDim
 blockIdx
 builtins
