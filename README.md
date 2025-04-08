@@ -64,7 +64,7 @@ hipMemcpy(C_h, C_d, Nbytes, hipMemcpyDeviceToHost);
 
 The HIP kernel language defines builtins for determining grid and block coordinates, math functions, short vectors,
 atomics, and timer functions.
-It also specifies additional defines and keywords for function types, address spaces, and optimization controls (See the [HIP C++ Language Extensions](docs/reference/cpp_language_extensions.rst) for a full description).
+It also specifies additional defines and keywords for function types, address spaces, and optimization controls (See the [HIP C++ Language Extensions](docs/how-to/hip_cpp_language_extensions.rst) for a full description).
 Here's an example of defining a simple 'vector_square' kernel.
 
 ```cpp
