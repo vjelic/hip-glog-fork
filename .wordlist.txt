@@ -6,15 +6,20 @@ APU
 APUs
 AQL
 AXPY
-Asynchrony
+asm
+asynchrony
 backtrace
 Bitcode
 bitcode
 bitcodes
+blockDim
+blockIdx
 builtins
 Builtins
 CAS
 clr
+compilable
+constexpr
 coroutines
 Ctx
 cuBLASLt
@@ -48,6 +53,8 @@ FNUZ
 fp
 gedit
 GPGPU
+gridDim
+GROMACS
 GWS
 hardcoded
 HC
@@ -78,6 +85,7 @@ isa
 Lapack
 latencies
 libc
+libhipcxx
 libstdc
 lifecycle
 linearizing
@@ -87,6 +95,9 @@ ltrace
 makefile
 Malloc
 malloc
+MALU
+maxregcount
+MiB
 memset
 multicore
 multigrid
@@ -104,6 +115,9 @@ ocp
 overindex
 overindexing
 oversubscription
+overutilized
+parallelizable
+parallelized
 pixelated
 pragmas
 preallocated
@@ -111,6 +125,8 @@ preconditioners
 predefining
 prefetched
 preprocessor
+printf
+profilers
 PTX
 PyHIP
 queryable
@@ -121,6 +137,7 @@ RMW
 ROCm's
 rocTX
 roundtrip
+rst
 RTC
 RTTI
 rvalue
@@ -132,10 +149,12 @@ SIMT
 SOMA
 SPMV
 structs
+struct's
 SYCL
 syntaxes
 texel
 texels
+threadIdx
 tradeoffs
 templated
 toolkits
@@ -145,5 +164,7 @@ UMM
 unmap
 upscaled
 variadic
+vulkan
+warpSize
 WinGDB
 zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
