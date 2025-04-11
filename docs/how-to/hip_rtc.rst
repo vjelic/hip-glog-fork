@@ -265,17 +265,17 @@ Use the following environment variables to manage the cache status as enabled or
 disabled, the location for storing the cache contents, and the cache eviction
 policy:
 
-* ``AMD_COMGR_CACHE`` By default this variable is unset and the
-  compilation cache feature is enabled. To disable the feature set the
-  environment variable to a value of ``0``.
+* ``AMD_COMGR_CACHE`` By default this variable has a value of ``0`` and the
+  compilation cache feature is disabled. To enable the feature set the
+  environment variable to a value of ``1`` (or any value other than ``0``).
 
 * ``AMD_COMGR_CACHE_DIR``: By default the value of this environment variable is
-  defined as ``$XDG_CACHE_HOME/comgr``, which defaults to
-  ``$USER/.cache/comgr`` on Linux, and ``%LOCALAPPDATA%\cache\comgr``
+  defined as ``$XDG_CACHE_HOME/comgr_cache``, which defaults to
+  ``$USER/.cache/comgr_cache`` on Linux, and ``%LOCALAPPDATA%\cache\comgr_cache``
   on Windows. You can specify a different directory for the environment variable
   to change the path for cache storage. If the runtime fails to access the
-  specified cache directory the cache is disabled. If the environment variable
-  is set to an empty string (``""``), the default directory is used.
+  specified cache directory, or the environment variable is set to an empty
+  string (""), the cache is disabled.
 
 * ``AMD_COMGR_CACHE_POLICY``: If assigned a value, the string is interpreted and
   applied to the cache pruning policy. The string format is consistent with
