@@ -21,7 +21,8 @@ THE SOFTWARE.
 */
 
 /**
- * @file hip_runtime_api.h
+
+* @file hip_runtime_api.h
  *
  * @brief Defines the API signatures for HIP runtime.
  * This file can be compiled with a standard compiler.
@@ -33,6 +34,7 @@ THE SOFTWARE.
 #include <string.h>  // for getDeviceProp
 #include <hip/hip_version.h>
 #include <hip/hip_common.h>
+#include <hip/linker_types.h>
 
 enum {
     HIP_SUCCESS = 0,
@@ -113,12 +115,15 @@ typedef struct hipDeviceProp_t {
     int clockRate;                    ///< Max clock frequency of the multiProcessors in khz.
     size_t totalConstMem;             ///< Size of shared constant memory region on the device
                                       ///< (in bytes).
-    int major;  ///< Major compute capability.  On HCC, this is an approximation and features may
-                ///< differ from CUDA CC.  See the arch feature flags for portable ways to query
+    int major;  ///< Major compute capability version.  This indicates the core instruction set
+                ///< of the GPU architecture.  For example, a value of 11 would correspond to
+                ///< Navi III (RDNA3).  See the arch feature flags for portable ways to query
                 ///< feature caps.
-    int minor;  ///< Minor compute capability.  On HCC, this is an approximation and features may
-                ///< differ from CUDA CC.  See the arch feature flags for portable ways to query
-                ///< feature caps.
+    int minor;  ///< Minor compute capability version.  This indicates a particular configuration,
+                ///< feature set, or variation within the group represented by the major compute
+                ///< capability version.  For example, different models within the same major version
+                ///< might have varying levels of support for certain features or optimizations.
+                ///< See the arch feature flags for portable ways to query feature caps.
     size_t textureAlignment;       ///< Alignment requirement for textures
     size_t texturePitchAlignment;  ///< Pitch alignment requirement for texture references bound to
     int deviceOverlap;             ///< Deprecated. Use asyncEngineCount instead
@@ -483,7 +488,8 @@ typedef enum hipDeviceAttribute_t {
     hipDeviceAttributePageableMemoryAccessUsesHostPageTables, ///< Device accesses pageable memory via the host's page tables
     hipDeviceAttributePciBusId,                         ///< PCI Bus ID.
     hipDeviceAttributePciDeviceId,                      ///< PCI Device ID.
-    hipDeviceAttributePciDomainID,                      ///< PCI Domain ID.
+    hipDeviceAttributePciDomainId,                      ///< PCI Domain Id.
+    hipDeviceAttributePciDomainID = hipDeviceAttributePciDomainId,  ///< PCI Domain ID, for backward compatibility.
     hipDeviceAttributePersistingL2CacheMaxSize,         ///< Maximum l2 persisting lines capacity in bytes
     hipDeviceAttributeMaxRegistersPerBlock,             ///< 32-bit registers available to a thread block. This number is shared
                                                         ///< by all thread blocks simultaneously resident on a multiprocessor.
@@ -625,6 +631,7 @@ typedef struct hipIpcEventHandle_st {
 } hipIpcEventHandle_t;
 typedef struct ihipModule_t* hipModule_t;
 typedef struct ihipModuleSymbol_t* hipFunction_t;
+typedef struct ihipLinkState_t* hipLinkState_t;
 /**
  * HIP memory pool
  */
@@ -658,8 +665,17 @@ enum hipLimit_t {
                                     ///< device. Currently not supported
     hipLimitMallocHeapSize = 0x02,  ///< Limit of heap size in bytes on the current device, should
                                     ///< be less than the global memory size on the device
+    hipExtLimitScratchMin = 0x1000, ///< Minimum allowed value in bytes for scratch limit on this
+                                    ///< device. Valid only on Rocm device. This is read only.
+    hipExtLimitScratchMax = 0x1001, ///< Maximum allowed value in bytes for scratch limit on this
+                                    ///< device. Valid only on Rocm device. This is read only.
+    hipExtLimitScratchCurrent = 0x1002, ///< Current scratch limit threshold in bytes on this
+                                        ///< device. Must be between hipExtLimitScratchMin and
+                                        ///< hipExtLimitScratchMaxValid values. Valid only on Rocm
+                                        ///< device. This can be modified.
     hipLimitRange                   ///< Supported limit range
 };
+
 /**
  * Flags that can be used with hipStreamCreateWithFlags.
  */
@@ -1089,7 +1105,10 @@ typedef enum hipMemAccessFlags {
     hipMemAccessFlagsProtReadWrite = 3   ///< Set the address range read-write accessible
 } hipMemAccessFlags;
 /**
- * Memory access descriptor
+ * Memory access descriptor structure is used to specify memory access
+ * permissions for a virtual memory region in Virtual Memory Management API.
+ * This structure changes read, and write permissions for
+ * specific memory regions.
  */
 typedef struct hipMemAccessDesc {
     hipMemLocation      location; ///< Location on which the accessibility has to change
@@ -1138,35 +1157,12 @@ typedef struct hipMemPoolPtrExportData {
 } hipMemPoolPtrExportData;
 
 /**
- * hipJitOption
- */
-typedef enum hipJitOption {
-    hipJitOptionMaxRegisters = 0,
-    hipJitOptionThreadsPerBlock,
-    hipJitOptionWallTime,
-    hipJitOptionInfoLogBuffer,
-    hipJitOptionInfoLogBufferSizeBytes,
-    hipJitOptionErrorLogBuffer,
-    hipJitOptionErrorLogBufferSizeBytes,
-    hipJitOptionOptimizationLevel,
-    hipJitOptionTargetFromContext,
-    hipJitOptionTarget,
-    hipJitOptionFallbackStrategy,
-    hipJitOptionGenerateDebugInfo,
-    hipJitOptionLogVerbose,
-    hipJitOptionGenerateLineInfo,
-    hipJitOptionCacheMode,
-    hipJitOptionSm3xOpt,
-    hipJitOptionFastCompile,
-    hipJitOptionNumOptions
-} hipJitOption;
-/**
  * @warning On AMD devices and some Nvidia devices, these hints and controls are ignored.
  */
 typedef enum hipFuncAttribute {
-    hipFuncAttributeMaxDynamicSharedMemorySize = 8,
-    hipFuncAttributePreferredSharedMemoryCarveout = 9,
-    hipFuncAttributeMax
+  hipFuncAttributeMaxDynamicSharedMemorySize = 8,          ///< The maximum number of bytes requested for dynamically allocated shared memory
+  hipFuncAttributePreferredSharedMemoryCarveout = 9,       ///< Sets the percentage of total shared memory allocated as the shared memory carveout
+  hipFuncAttributeMax
 } hipFuncAttribute;
 /**
  * @warning On AMD devices and some Nvidia devices, these hints and controls are ignored.
@@ -1443,20 +1439,21 @@ typedef struct hipAccessPolicyWindow {
  *  Launch Attribute ID
  */
 typedef enum hipLaunchAttributeID {
-    hipLaunchAttributeAccessPolicyWindow = 1, /**< Valid for Streams, graph nodes, launches*/
-    hipLaunchAttributeCooperative = 2, /**< Valid for graph nodes, launches */
-    hipLaunchAttributePriority = 8, /**< Valid for graph node, streams, launches */
+  hipLaunchAttributeAccessPolicyWindow = 1,                ///< Valid for Streams, graph nodes, launches
+  hipLaunchAttributeCooperative = 2,                       ///< Valid for graph nodes, launches
+  hipLaunchAttributePriority = 8,                          ///< Valid for graph node, streams, launches
+  hipLaunchAttributeMax
 } hipLaunchAttributeID;
+
 
 /**
  *  Launch Attribute Value
  */
 typedef union hipLaunchAttributeValue {
-    hipAccessPolicyWindow accessPolicyWindow; /**< Value of launch attribute::
-                          hipLaunchAttributePolicyWindow. */
-    int cooperative; /**< Value of launch attribute ::hipLaunchAttributeCooperative */
-    int priority; /**< Value of launch attribute :: hipLaunchAttributePriority. Execution
-                      priority of kernel. */
+    char pad[64];                              ///< 64 byte padding
+    hipAccessPolicyWindow accessPolicyWindow;  ///< Value of launch attribute ::hipLaunchAttributePolicyWindow.
+    int cooperative;                           ///< Value of launch attribute ::hipLaunchAttributeCooperative. Indicates whether the kernel is cooperative.
+    int priority;                              ///< Value of launch attribute :: hipLaunchAttributePriority. Execution priority of kernel
 } hipLaunchAttributeValue;
 
 /**
@@ -1471,6 +1468,15 @@ typedef union hipLaunchAttributeValue {
  * Kernel node attribute value
  */
 #define hipKernelNodeAttrValue hipLaunchAttributeValue
+
+/**
+ * hip Drv attributes
+ */
+#define hipDrvLaunchAttributeCooperative  hipLaunchAttributeCooperative
+
+#define hipDrvLaunchAttributeID hipLaunchAttributeID
+#define hipDrvLaunchAttributeValue hipLaunchAttributeValue
+#define hipDrvLaunchAttribute hipLaunchAttribute
 
 /**
  * Memset node params
@@ -1595,7 +1601,10 @@ typedef struct hipGraphInstantiateParams {
  */
 typedef struct hipMemAllocationProp {
     hipMemAllocationType type;                       ///< Memory allocation type
-    hipMemAllocationHandleType requestedHandleType;  ///< Requested handle type
+    union {
+      hipMemAllocationHandleType requestedHandleType;   ///< Requested handle type
+      hipMemAllocationHandleType requestedHandleTypes;  ///< Requested handle types
+    };
     hipMemLocation location;                         ///< Memory location
     void* win32HandleMetaData;                       ///< Metadata for Win32 handles
     struct {
@@ -1801,6 +1810,63 @@ typedef struct hipGraphEdgeData {
       to_port;  ///< Currently no node types define non-zero ports. This field must be set to zero.
   unsigned char type;  ///< This should be populated with a value from hipGraphDependencyType
 } hipGraphEdgeData;
+
+
+/**
+ * Used to specify custom attributes for launching kernels
+ */
+typedef struct hipLaunchAttribute_st {
+  hipLaunchAttributeID id;                        ///< Identifier of the launch attribute
+  char pad[8 - sizeof(hipLaunchAttributeID)];     ///< Padding to align the structure to 8 bytes
+  union {
+    hipLaunchAttributeValue val;                  ///< Value associated with the launch attribute
+    hipLaunchAttributeValue value;                ///< Value associated with the launch attribute
+  };
+} hipLaunchAttribute;
+
+/**
+ * HIP extensible launch configuration
+ */
+typedef struct hipLaunchConfig_st {
+  dim3 gridDim;              ///< Grid dimensions
+  dim3 blockDim;             ///< Block dimensions
+  size_t dynamicSmemBytes;   ///< Dynamic shared-memory size per thread block
+  hipStream_t stream;        ///< Stream identifier
+  hipLaunchAttribute* attrs; ///< Attributes list
+  unsigned int numAttrs;     ///< Number of attributes
+} hipLaunchConfig_t;
+
+/**
+ * HIP driver extensible launch configuration
+ */
+typedef struct HIP_LAUNCH_CONFIG_st {
+  unsigned int gridDimX;        ///< Grid width in blocks
+  unsigned int gridDimY;        ///< Grid height in blocks
+  unsigned int gridDimZ;        ///< Grid depth in blocks
+  unsigned int blockDimX;       ///< Thread block dimension in X
+  unsigned int blockDimY;       ///< Thread block dimension in Y
+  unsigned int blockDimZ;       ///< Thread block dimension in Z
+  unsigned int sharedMemBytes;  ///< Dynamic shared-memory size in bytes per block
+  hipStream_t hStream;          ///< HIP stream identifier
+  hipLaunchAttribute* attrs;    ///< Attribute list
+  unsigned int numAttrs;        ///< Number of attributes
+} HIP_LAUNCH_CONFIG;
+
+/**
+ * Requested handle type for address range.
+ */
+typedef enum hipMemRangeHandleType {
+  hipMemRangeHandleTypeDmaBufFd = 0x1,
+  hipMemRangeHandleTypeMax = 0x7fffffff
+} hipMemRangeHandleType;
+
+/**
+ * Mem Range Flags used in hipMemGetHandleForAddressRange.
+ */
+typedef enum hipMemRangeFlags {
+  hipMemRangeFlagDmaBufMappingTypePcie = 0x1,
+  hipMemRangeFlagsMax = 0x7fffffff
+} hipMemRangeFlags;
 
 // Doxygen end group GlobalDefs
 /**
@@ -2546,19 +2612,21 @@ hipError_t hipDrvGetErrorString(hipError_t hipError, const char** errorString);
  *  This section describes the stream management functions of HIP runtime API.
  *  The following Stream APIs are not (yet) supported in HIP:
  *  - hipStreamAttachMemAsync is a nop
+ *  - hipDeviceGetStreamPriorityRange returns #hipSuccess
  */
 
 /**
- * @brief Create an asynchronous stream.
+ * @brief Creates an asynchronous stream.
  *
- * @param[in, out] stream Valid pointer to hipStream_t.  This function writes the memory with the
+ * @param[in, out] stream  Valid pointer to hipStream_t.  This function writes the memory with the
  * newly created stream.
  * @returns #hipSuccess, #hipErrorInvalidValue
  *
- * Create a new asynchronous stream.  @p stream returns an opaque handle that can be used to
- * reference the newly created stream in subsequent hipStream* commands.  The stream is allocated on
- * the heap and will remain allocated even if the handle goes out-of-scope.  To release the memory
- * used by the stream, application must call hipStreamDestroy.
+ * Creates a new asynchronous stream with its associated current device. The @p stream returns an
+ * opaque handle that can be used to reference the newly created stream in subsequent hipStream*
+ * commands. The stream is allocated on the heap and will remain allocated even if the handle goes
+ * out-of-scope. To release the memory used by the stream, the application must call
+ * hipStreamDestroy.
  *
  * @returns #hipSuccess, #hipErrorInvalidValue
  *
@@ -2566,59 +2634,70 @@ hipError_t hipDrvGetErrorString(hipError_t hipError, const char** errorString);
  */
 hipError_t hipStreamCreate(hipStream_t* stream);
 /**
- * @brief Create an asynchronous stream.
+ * @brief Creates an asynchronous stream with flag.
  *
- * @param[in, out] stream Pointer to new stream
- * @param[in ] flags to control stream creation.
+ * @param[in, out] stream  Pointer to new stream
+ * @param[in] flags  Parameters to control stream creation
  * @returns #hipSuccess, #hipErrorInvalidValue
  *
- * Create a new asynchronous stream.  @p stream returns an opaque handle that can be used to
- * reference the newly created stream in subsequent hipStream* commands.  The stream is allocated on
- * the heap and will remain allocated even if the handle goes out-of-scope.  To release the memory
- * used by the stream, application must call hipStreamDestroy. Flags controls behavior of the
- * stream.  See #hipStreamDefault, #hipStreamNonBlocking.
+ * Creates a new asynchronous stream with its associated current device. @p stream returns an
+ * opaque handle that can be used to reference the newly created stream in subsequent hipStream*
+ * commands. The stream is allocated on the heap and will remain allocated even if the handle
+ * goes out-of-scope. To release the memory used by the stream, application must call
+ * hipStreamDestroy.
  *
+ * The @p flags parameter controls behavior of the stream. The valid values are #hipStreamDefault and
+ * #hipStreamNonBlocking.
  *
- * @see hipStreamCreate, hipStreamCreateWithPriority, hipStreamSynchronize, hipStreamWaitEvent, hipStreamDestroy
+ * @see hipStreamCreate, hipStreamCreateWithPriority, hipStreamSynchronize, hipStreamWaitEvent,
+ * hipStreamDestroy.
+ *
  */
 hipError_t hipStreamCreateWithFlags(hipStream_t* stream, unsigned int flags);
 /**
- * @brief Create an asynchronous stream with the specified priority.
+ * @brief Creates an asynchronous stream with the specified priority.
  *
- * @param[in, out] stream Pointer to new stream
- * @param[in ] flags to control stream creation.
- * @param[in ] priority of the stream. Lower numbers represent higher priorities.
+ * @param[in, out] stream  Pointer to new stream
+ * @param[in] flags  Parameters to control stream creation
+ * @param[in] priority  Priority of the stream. Lower numbers represent higher priorities.
  * @returns #hipSuccess, #hipErrorInvalidValue
  *
- * Create a new asynchronous stream with the specified priority.  @p stream returns an opaque handle
- * that can be used to reference the newly created stream in subsequent hipStream* commands.  The
- * stream is allocated on the heap and will remain allocated even if the handle goes out-of-scope.
- * To release the memory used by the stream, application must call hipStreamDestroy. Flags controls
- * behavior of the stream.  See #hipStreamDefault, #hipStreamNonBlocking.
- *
+ * Creates a new asynchronous stream with the specified priority, with its associated current device.
+ * @p stream returns an opaque handle that can be used to reference the newly created stream in
+ * subsequent hipStream* commands. The stream is allocated on the heap and will remain allocated
+ * even if the handle goes out-of-scope. To release the memory used by the stream, application must
+ * call hipStreamDestroy.
+ * 
+ * The @p flags parameter controls behavior of the stream. The valid values are #hipStreamDefault
+ * and #hipStreamNonBlocking.
  *
  * @see hipStreamCreate, hipStreamSynchronize, hipStreamWaitEvent, hipStreamDestroy
+ *
  */
 hipError_t hipStreamCreateWithPriority(hipStream_t* stream, unsigned int flags, int priority);
 /**
  * @brief Returns numerical values that correspond to the least and greatest stream priority.
  *
- * @param[in, out] leastPriority pointer in which value corresponding to least priority is returned.
- * @param[in, out] greatestPriority pointer in which value corresponding to greatest priority is returned.
+ * @param[in, out] leastPriority  Pointer in which a value corresponding to least priority
+ * is returned.
+ * @param[in, out] greatestPriority  Pointer in which a value corresponding to greatest priority
+ * is returned.
  * @returns #hipSuccess
  *
- * Returns in *leastPriority and *greatestPriority the numerical values that correspond to the least
- * and greatest stream priority respectively. Stream priorities follow a convention where lower numbers
- * imply greater priorities. The range of meaningful stream priorities is given by
- * [*greatestPriority, *leastPriority]. If the user attempts to create a stream with a priority value
- * that is outside the meaningful range as specified by this API, the priority is automatically
- * clamped to within the valid range.
+ * Returns in *leastPriority and *greatestPriority the numerical values that correspond to the
+ * least and greatest stream priority respectively. Stream priorities follow a convention where
+ * lower numbers imply greater priorities. The range of meaningful stream priorities is given by
+ * [*leastPriority,*greatestPriority]. If the user attempts to create a stream with a priority
+ * value that is outside the meaningful range as specified by this API, the priority is
+ * automatically clamped to within the valid range.
+ *
+ * @warning This API is under development on AMD GPUs and simply returns #hipSuccess.
  */
 hipError_t hipDeviceGetStreamPriorityRange(int* leastPriority, int* greatestPriority);
 /**
  * @brief Destroys the specified stream.
  *
- * @param[in] stream stream identifier.
+ * @param[in] stream  Stream identifier
  * @returns #hipSuccess #hipErrorInvalidHandle
  *
  * Destroys the specified stream.
@@ -2634,10 +2713,10 @@ hipError_t hipDeviceGetStreamPriorityRange(int* leastPriority, int* greatestPrio
  */
 hipError_t hipStreamDestroy(hipStream_t stream);
 /**
- * @brief Return #hipSuccess if all of the operations in the specified @p stream have completed, or
+ * @brief Returns #hipSuccess if all of the operations in the specified @p stream have completed, or
  * #hipErrorNotReady if not.
  *
- * @param[in] stream stream to query
+ * @param[in] stream  Stream to query
  *
  * @returns #hipSuccess, #hipErrorNotReady, #hipErrorInvalidHandle
  *
@@ -2650,20 +2729,21 @@ hipError_t hipStreamDestroy(hipStream_t stream);
  */
 hipError_t hipStreamQuery(hipStream_t stream);
 /**
- * @brief Wait for all commands in stream to complete.
+ * @brief Waits for all commands in the stream to complete.
  *
- * @param[in] stream stream identifier.
+ * @param[in] stream  Stream identifier.
  *
  * @returns #hipSuccess, #hipErrorInvalidHandle
  *
- * This command is host-synchronous : the host will block until the specified stream is empty.
+ * This command is host-synchronous : the host will block until all operations on the specified
+ * stream with its associated device are completed. On multiple device systems, the @p stream is
+ * associated with its device, no need to call hipSetDevice before this API.
  *
- * This command follows standard null-stream semantics.  Specifically, specifying the null stream
- * will cause the command to wait for other streams on the same device to complete all pending
- * operations.
+ * This command follows standard null-stream semantics. Specifying the null stream will cause the
+ * command to wait for other streams on the same device to complete all pending operations.
  *
- * This command honors the hipDeviceLaunchBlocking flag, which controls whether the wait is active
- * or blocking.
+ * This command honors the #hipDeviceScheduleBlockingSync flag, which controls whether the wait is
+ * active or blocking.
  *
  * @see hipStreamCreate, hipStreamCreateWithFlags, hipStreamCreateWithPriority, hipStreamWaitEvent,
  * hipStreamDestroy
@@ -2671,11 +2751,11 @@ hipError_t hipStreamQuery(hipStream_t stream);
  */
 hipError_t hipStreamSynchronize(hipStream_t stream);
 /**
- * @brief Make the specified compute stream wait for an event
+ * @brief Makes the specified compute stream wait for the specified event
  *
- * @param[in] stream stream to make wait.
- * @param[in] event event to wait on
- * @param[in] flags control operation [must be 0]
+ * @param[in] stream  Stream to make wait
+ * @param[in] event  Event to wait on
+ * @param[in] flags  Parameters to control the operation [must be 0]
  *
  * @returns #hipSuccess, #hipErrorInvalidHandle
  *
@@ -2687,42 +2767,36 @@ hipError_t hipStreamSynchronize(hipStream_t stream);
  * does not implicitly wait for commands in the default stream to complete, even if the specified
  * stream is created with hipStreamNonBlocking = 0.
  *
- * @see hipStreamCreate, hipStreamCreateWithFlags, hipStreamCreateWithPriority, hipStreamSynchronize, hipStreamDestroy
+ * @see hipStreamCreate, hipStreamCreateWithFlags, hipStreamCreateWithPriority, hipStreamSynchronize,
+ * hipStreamDestroy
  */
 hipError_t hipStreamWaitEvent(hipStream_t stream, hipEvent_t event, unsigned int flags __dparm(0));
 /**
- * @brief Return flags associated with this stream.
+ * @brief Returns flags associated with this stream.
  *
- * @param[in] stream stream to be queried
- * @param[in,out] flags Pointer to an unsigned integer in which the stream's flags are returned
- * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidHandle
- *
- * @returns #hipSuccess #hipErrorInvalidValue #hipErrorInvalidHandle
- *
- * Return flags associated with this stream in *@p flags.
+ * @param[in] stream  Stream to be queried
+ * @param[in,out] flags  Pointer to an unsigned integer in which the stream's flags are returned
+ * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidHandle.
  *
  * @see hipStreamCreateWithFlags
  */
 hipError_t hipStreamGetFlags(hipStream_t stream, unsigned int* flags);
 /**
- * @brief Query the priority of a stream.
+ * @brief Queries the priority of a stream.
  *
- * @param[in] stream stream to be queried
- * @param[in,out] priority Pointer to an unsigned integer in which the stream's priority is returned
- * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidHandle
+ * @param[in] stream  Stream to be queried
+ * @param[in,out] priority  Pointer to an unsigned integer in which the stream's priority is returned
  *
- * @returns #hipSuccess #hipErrorInvalidValue #hipErrorInvalidHandle
+ * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidHandle.
  *
- * Query the priority of a stream. The priority is returned in in priority.
- *
- * @see hipStreamCreateWithFlags
+ * @see hipStreamCreateWithPriority
  */
 hipError_t hipStreamGetPriority(hipStream_t stream, int* priority);
 /**
- * @brief Get the device assocaited with the stream
+ * @brief Gets the device associated with the stream.
  *
- * @param[in] stream stream to be queried
- * @param[out] device device associated with the stream
+ * @param[in] stream  Stream to be queried
+ * @param[out] device  Device associated with the stream
  * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorContextIsDestroyed, #hipErrorInvalidHandle,
  * #hipErrorNotInitialized, #hipErrorDeinitialized, #hipErrorInvalidContext
  *
@@ -2730,33 +2804,32 @@ hipError_t hipStreamGetPriority(hipStream_t stream, int* priority);
  */
 hipError_t hipStreamGetDevice(hipStream_t stream, hipDevice_t* device);
 /**
- * @brief Create an asynchronous stream with the specified CU mask.
+ * @brief Creates an asynchronous stream with the specified CU mask.
  *
- * @param[in, out] stream Pointer to new stream
- * @param[in ] cuMaskSize Size of CU mask bit array passed in.
- * @param[in ] cuMask Bit-vector representing the CU mask. Each active bit represents using one CU.
+ * @param[in, out] stream  Pointer to new stream
+ * @param[in] cuMaskSize  Size of CU mask bit array passed in.
+ * @param[in] cuMask Bit-vector representing the CU mask. Each active bit represents using one CU.
  * The first 32 bits represent the first 32 CUs, and so on. If its size is greater than physical
  * CU number (i.e., multiProcessorCount member of hipDeviceProp_t), the extra elements are ignored.
  * It is user's responsibility to make sure the input is meaningful.
  * @returns #hipSuccess, #hipErrorInvalidHandle, #hipErrorInvalidValue
  *
- * Create a new asynchronous stream with the specified CU mask.  @p stream returns an opaque handle
+ * Creates  a new asynchronous stream with the specified CU mask.  @p stream returns an opaque handle
  * that can be used to reference the newly created stream in subsequent hipStream* commands.  The
  * stream is allocated on the heap and will remain allocated even if the handle goes out-of-scope.
  * To release the memory used by the stream, application must call hipStreamDestroy.
- *
  *
  * @see hipStreamCreate, hipStreamSynchronize, hipStreamWaitEvent, hipStreamDestroy
  */
 hipError_t hipExtStreamCreateWithCUMask(hipStream_t* stream, uint32_t cuMaskSize, const uint32_t* cuMask);
 /**
- * @brief Get CU mask associated with an asynchronous stream
+ * @brief Gets CU mask associated with an asynchronous stream
  *
- * @param[in] stream stream to be queried
- * @param[in] cuMaskSize number of the block of memories (uint32_t *) allocated by user
- * @param[out] cuMask Pointer to a pre-allocated block of memories (uint32_t *) in which
+ * @param[in] stream  Stream to be queried
+ * @param[in] cuMaskSize  Number of the block of memories (uint32_t *) allocated by user
+ * @param[out] cuMask  Pointer to a pre-allocated block of memories (uint32_t *) in which
  * the stream's CU mask is returned. The CU mask is returned in a chunck of 32 bits where
- * each active bit represents one active CU
+ * each active bit represents one active CU.
  * @returns #hipSuccess, #hipErrorInvalidHandle, #hipErrorInvalidValue
  *
  * @see hipStreamCreate, hipStreamSynchronize, hipStreamWaitEvent, hipStreamDestroy
@@ -2767,10 +2840,10 @@ hipError_t hipExtStreamGetCUMask(hipStream_t stream, uint32_t cuMaskSize, uint32
  */
 typedef void (*hipStreamCallback_t)(hipStream_t stream, hipError_t status, void* userData);
 /**
- * @brief Adds a callback to be called on the host after all currently enqueued
- * items in the stream have completed.  For each
- * hipStreamAddCallback call, a callback will be executed exactly once.
+ * @brief Adds a callback to be called on the host after all currently enqueued items in the stream
+ * have completed.  For each hipStreamAddCallback call, a callback will be executed exactly once.
  * The callback will block later work in the stream until it is finished.
+ *
  * @param[in] stream   - Stream to add callback to
  * @param[in] callback - The function to call once preceding stream operations are complete
  * @param[in] userData - User specified data to be passed to the callback function
@@ -4307,7 +4380,7 @@ hipError_t hipHostFree(void* ptr);
  *  For multi-gpu or peer-to-peer configurations, it is recommended to set the current device to the
  *  device where the src data is physically located. For optimal peer-to-peer copies, the copy device
  *  must be able to access the src and dst pointers (by calling hipDeviceEnablePeerAccess with copy
- *  agent as the current device and src/dest as the peerDevice argument.  if this is not done, the
+ *  agent as the current device and src/dst as the peerDevice argument.  if this is not done, the
  *  hipMemcpy will still work, but will perform the copy using a staging buffer on the host.
  *  Calling hipMemcpy with dst and src pointers that do not match the hipMemcpyKind results in
  *  undefined behavior.
@@ -4698,20 +4771,19 @@ hipError_t hipMemcpyFromSymbolAsync(void* dst, const void* symbol,
                                     hipMemcpyKind kind,
                                     hipStream_t stream __dparm(0));
 /**
- *  @brief Copy data from src to dst asynchronously.
+ *  @brief Copies data from src to dst asynchronously.
  *
- *  @warning If host or dest are not pinned, the memory copy will be performed synchronously.  For
+ *  The copy is always performed by the device associated with the specified stream.
+ *
+ *  For multi-gpu or peer-to-peer configurations, it is recommended to use a stream which is
+ * attached to the device where the src data is physically located.
+ *  For optimal peer-to-peer copies, the copy device must be able to access the src and dst
+ * pointers (by calling hipDeviceEnablePeerAccess) with copy agent as the current device and
+ * src/dest as the peerDevice argument. If enabling device peer access is not done, the memory copy
+ * will still work, but will perform the copy using a staging buffer on the host.
+ *
+ *  @note If host or dst are not pinned, the memory copy will be performed synchronously. For
  * best performance, use hipHostMalloc to allocate host memory that is transferred asynchronously.
- *
- *  @warning on HCC hipMemcpyAsync does not support overlapped H2D and D2H copies.
- *  For hipMemcpy, the copy is always performed by the device associated with the specified stream.
- *
- *  For multi-gpu or peer-to-peer configurations, it is recommended to use a stream which is a
- * attached to the device where the src data is physically located. For optimal peer-to-peer copies,
- * the copy device must be able to access the src and dst pointers (by calling
- * hipDeviceEnablePeerAccess with copy agent as the current device and src/dest as the peerDevice
- * argument.  if this is not done, the hipMemcpy will still work, but will perform the copy using a
- * staging buffer on the host.
  *
  *  @param[out] dst Data being copy to
  *  @param[in]  src Data being copy from
@@ -4836,11 +4908,11 @@ hipError_t hipMemsetD32Async(hipDeviceptr_t dst, int value, size_t count,
 /**
  *  @brief Fills the memory area pointed to by dst with the constant value.
  *
- *  @param[out] dst Pointer to device memory
- *  @param[in]  pitch  Data size in bytes
- *  @param[in]  value  Constant value to be set
- *  @param[in]  width
- *  @param[in]  height
+ *  @param[out] dst Pointer to 2D device memory
+ *  @param[in]  pitch  Pitch size in bytes of 2D device memory, unused if height equals 1
+ *  @param[in]  value  Constant value to set for each byte of specified memory
+ *  @param[in]  width  Width size in bytes in 2D memory
+ *  @param[in]  height  Height size in bytes in 2D memory
  *  @returns #hipSuccess, #hipErrorInvalidValue
  */
 hipError_t hipMemset2D(void* dst, size_t pitch, int value, size_t width, size_t height);
@@ -4848,10 +4920,10 @@ hipError_t hipMemset2D(void* dst, size_t pitch, int value, size_t width, size_t 
  *  @brief Fills asynchronously the memory area pointed to by dst with the constant value.
  *
  *  @param[in]  dst Pointer to 2D device memory
- *  @param[in]  pitch  Pitch size in bytes
- *  @param[in]  value  Value to be set for each byte of specified memory
- *  @param[in]  width  Width of matrix set columns in bytes
- *  @param[in]  height  Height of matrix set rows in bytes
+ *  @param[in]  pitch  Pitch size in bytes of 2D device memory, unused if height equals 1
+ *  @param[in]  value  Value to set for each byte of specified memory
+ *  @param[in]  width  Width size in bytes in 2D memory
+ *  @param[in]  height  Height size in bytes in 2D memory
  *  @param[in]  stream  Stream identifier
  *  @returns #hipSuccess, #hipErrorInvalidValue
  */
@@ -5037,12 +5109,30 @@ hipError_t hipArray3DGetDescriptor(HIP_ARRAY3D_DESCRIPTOR* pArrayDescriptor, hip
 /**
  *  @brief Copies data between host and device.
  *
+ * hipMemcpy2D supports memory matrix copy from the pointed area src to the pointed area dst.
+ * The copy direction is defined by kind which must be one of #hipMemcpyHostToDevice,
+ * #hipMemcpyHostToDevice, #hipMemcpyDeviceToHost #hipMemcpyDeviceToDevice or #hipMemcpyDefault.
+ * Device to Device copies don't need to wait for host synchronization.
+ * The copy is executed on the default null tream. The src and dst must not overlap.
+ * dpitch and spitch are the widths in bytes in memory matrix, width cannot exceed dpitch or
+ * spitch.
+ *
+ * For hipMemcpy2D, the copy is always performed by the current device (set by hipSetDevice).
+ * For multi-gpu or peer-to-peer configurations, it is recommended to set the current device to the
+ * device where the src data is physically located. For optimal peer-to-peer copies, the copy device
+ * must be able to access the src and dst pointers (by calling hipDeviceEnablePeerAccess with copy
+ * agent as the current device and src/dst as the peerDevice argument.  if this is not done, the
+ * hipMemcpy2D will still work, but will perform the copy using a staging buffer on the host.
+ *
+ *  @warning  Calling hipMemcpy2D with dst and src pointers that do not match the hipMemcpyKind results in
+ * undefined behavior.
+ *
  *  @param[in]   dst    Destination memory address
- *  @param[in]   dpitch Pitch of destination memory
+ *  @param[in]   dpitch Pitch size in bytes of destination memory
  *  @param[in]   src    Source memory address
- *  @param[in]   spitch Pitch of source memory
- *  @param[in]   width  Width of matrix transfer (columns in bytes)
- *  @param[in]   height Height of matrix transfer (rows)
+ *  @param[in]   spitch Pitch size in bytes of source memory
+ *  @param[in]   width  Width size in bytes of matrix transfer (columns)
+ *  @param[in]   height Height size in bytes of matrix transfer (rows)
  *  @param[in]   kind   Type of transfer
  *  @returns     #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidPitchValue,
  * #hipErrorInvalidDevicePointer, #hipErrorInvalidMemcpyDirection
@@ -5074,12 +5164,35 @@ hipError_t hipMemcpyParam2D(const hip_Memcpy2D* pCopy);
 */
 hipError_t hipMemcpyParam2DAsync(const hip_Memcpy2D* pCopy, hipStream_t stream __dparm(0));
 /**
- *  @brief Copies data between host and device.
+ *  @brief Copies data between host and device asynchronously.
  *
- *  @param[in]   dst    Destination memory address
- *  @param[in]   dpitch Pitch of destination memory
- *  @param[in]   src    Source memory address
- *  @param[in]   spitch Pitch of source memory
+ *  hipMemcpy2DAsync supports memory matrix copy from the pointed area src to the pointed area dst.
+ * The copy direction is defined by kind which must be one of #hipMemcpyHostToDevice,
+ * #hipMemcpyDeviceToHost, #hipMemcpyDeviceToDevice or #hipMemcpyDefault.
+ * dpitch and spitch are the widths in bytes for memory matrix corresponds to dst and src.
+ * width cannot exceed dpitch or spitch.
+ *
+ * The copy is always performed by the device associated with the specified stream.
+ * The API is asynchronous with respect to the host, so the call may return before the copy is
+ * complete. The copy can optionally be excuted in a specific stream by passing a non-zero stream
+ * argument, for HostToDevice or DeviceToHost copies, the copy can overlap with operations
+ * in other streams.
+ *
+ * For multi-gpu or peer-to-peer configurations, it is recommended to use a stream which is
+ * attached to the device where the src data is physically located.
+ *
+ * For optimal peer-to-peer copies, the copy device must be able to access the src and dst pointers
+ * (by calling hipDeviceEnablePeerAccess) with copy agent as the current device and src/dst as the
+ * peerDevice argument. If enabling device peer access is not done, the API will still work, but
+ * will perform the copy using a staging buffer on the host.
+ *
+ *  @note If host or dst are not pinned, the memory copy will be performed synchronously.  For
+ * best performance, use hipHostMalloc to allocate host memory that is transferred asynchronously.
+ *
+ *  @param[in]   dst    Pointer to destination memory address
+ *  @param[in]   dpitch Pitch size in bytes of destination memory
+ *  @param[in]   src    Pointer to source memory address
+ *  @param[in]   spitch Pitch size in bytes of source memory
  *  @param[in]   width  Width of matrix transfer (columns in bytes)
  *  @param[in]   height Height of matrix transfer (rows)
  *  @param[in]   kind   Type of transfer
@@ -5306,64 +5419,6 @@ hipError_t hipDrvMemcpy3D(const HIP_MEMCPY3D* pCopy);
  * hipMemcpyAsync
  */
 hipError_t hipDrvMemcpy3DAsync(const HIP_MEMCPY3D* pCopy, hipStream_t stream);
-// doxygen end Memory
-/**
- * @}
- */
-/**
- *-------------------------------------------------------------------------------------------------
- *-------------------------------------------------------------------------------------------------
- *  @defgroup PeerToPeer PeerToPeer Device Memory Access
- *  @{
- *  @warning PeerToPeer support is experimental.
- *  This section describes the PeerToPeer device memory access functions of HIP runtime API.
- */
-/**
- * @brief Determine if a device can access a peer's memory.
- *
- * @param [out] canAccessPeer Returns the peer access capability (0 or 1)
- * @param [in] deviceId - device from where memory may be accessed.
- * @param [in] peerDeviceId - device where memory is physically located
- *
- * Returns "1" in @p canAccessPeer if the specified @p device is capable
- * of directly accessing memory physically located on peerDevice , or "0" if not.
- *
- * Returns "0" in @p canAccessPeer if deviceId == peerDeviceId, and both are valid devices : a
- * device is not a peer of itself.
- *
- * @returns #hipSuccess,
- * @returns #hipErrorInvalidDevice if deviceId or peerDeviceId are not valid devices
- */
-hipError_t hipDeviceCanAccessPeer(int* canAccessPeer, int deviceId, int peerDeviceId);
-/**
- * @brief Enable direct access from current device's virtual address space to memory allocations
- * physically located on a peer device.
- *
- * Memory which already allocated on peer device will be mapped into the address space of the
- * current device.  In addition, all future memory allocations on peerDeviceId will be mapped into
- * the address space of the current device when the memory is allocated. The peer memory remains
- * accessible from the current device until a call to hipDeviceDisablePeerAccess or hipDeviceReset.
- *
- *
- * @param [in] peerDeviceId  Peer device to enable direct access to from the current device
- * @param [in] flags  Reserved for future use, must be zero
- *
- * Returns #hipSuccess, #hipErrorInvalidDevice, #hipErrorInvalidValue,
- * @returns #hipErrorPeerAccessAlreadyEnabled if peer access is already enabled for this device.
- */
-hipError_t hipDeviceEnablePeerAccess(int peerDeviceId, unsigned int flags);
-/**
- * @brief Disable direct access from current device's virtual address space to memory allocations
- * physically located on a peer device.
- *
- * Returns hipErrorPeerAccessNotEnabled if direct access to memory on peerDevice has not yet been
- * enabled from the current device.
- *
- * @param [in] peerDeviceId  Peer device to disable direct access to
- *
- * @returns #hipSuccess, #hipErrorPeerAccessNotEnabled
- */
-hipError_t hipDeviceDisablePeerAccess(int peerDeviceId);
 /**
  * @brief Get information on memory allocations.
  *
@@ -5377,14 +5432,73 @@ hipError_t hipDeviceDisablePeerAccess(int peerDeviceId);
  * hipCtxSetCurrent, hipCtxPushCurrent, hipCtxSetCacheConfig, hipCtxSynchronize, hipCtxGetDevice
  */
 hipError_t hipMemGetAddressRange(hipDeviceptr_t* pbase, size_t* psize, hipDeviceptr_t dptr);
-#ifndef USE_PEER_NON_UNIFIED
-#define USE_PEER_NON_UNIFIED 1
-#endif
-#if USE_PEER_NON_UNIFIED == 1
+// doxygen end Memory
 /**
- * @brief Copies memory from one device to memory on another device.
+ * @}
+ */
+/**
+ *-------------------------------------------------------------------------------------------------
+ *-------------------------------------------------------------------------------------------------
+ *  @defgroup PeerToPeer PeerToPeer Device Memory Access
+ *  @{
+ *  @ingroup API
+ *  This section describes the PeerToPeer device memory access functions of HIP runtime API.
+ */
+/**
+ * @brief Determines if a device can access a peer device's memory.
  *
- * @param [out] dst - Destination device pointer.
+ * @param [out] canAccessPeer - Returns the peer access capability (0 or 1)
+ * @param [in] deviceId - The device accessing the peer device memory.
+ * @param [in] peerDeviceId - Peer device where memory is physically located
+ *
+ * The value of @p canAccessPeer,
+ *
+ * Returns "1" if the specified @p deviceId is capable of directly accessing memory physically
+ * located on @p peerDeviceId,
+ *
+ * Returns "0" if the specified @p deviceId is not capable of directly accessing memory physically
+ * located on @p peerDeviceId.
+ *
+ * Returns "0" if @p deviceId == @p peerDeviceId, both are valid devices,
+ * however, a device is not a peer of itself.
+ *
+ * Returns #hipErrorInvalidDevice if deviceId or peerDeviceId are not valid devices
+ *
+ * @returns #hipSuccess, #hipErrorInvalidDevice
+ *
+ */
+hipError_t hipDeviceCanAccessPeer(int* canAccessPeer, int deviceId, int peerDeviceId);
+/**
+ * @brief Enables direct access to memory allocations on a peer device.
+ *
+ * When this API is successful, all memory allocations on peer device will be mapped into the
+ * address space of the current device. In addition, any future memory allocation on the
+ * peer device will remain accessible from the current device, until the access is disabled using
+ * hipDeviceDisablePeerAccess or device is reset using hipDeviceReset.
+ *
+ * @param [in] peerDeviceId - Peer device to enable direct access to from the current device
+ * @param [in] flags - Reserved for future use, must be zero
+ *
+ * @returns #hipSuccess, #hipErrorInvalidDevice, #hipErrorInvalidValue,
+ * @returns #hipErrorPeerAccessAlreadyEnabled if peer access is already enabled for this device.
+ */
+hipError_t hipDeviceEnablePeerAccess(int peerDeviceId, unsigned int flags);
+/**
+ * @brief Disables direct access to memory allocations on a peer device.
+ *
+ * If direct access to memory allocations on peer device has not been enabled yet from the current
+ * device, it returns #hipErrorPeerAccessNotEnabled.
+ *
+ * @param [in] peerDeviceId  Peer device to disable direct access to
+ *
+ * @returns #hipSuccess, #hipErrorPeerAccessNotEnabled
+ */
+hipError_t hipDeviceDisablePeerAccess(int peerDeviceId);
+
+/**
+ * @brief Copies memory between two peer accessible devices.
+ *
+ * @param [out] dst - Destination device pointer
  * @param [in] dstDeviceId - Destination device
  * @param [in] src - Source device pointer
  * @param [in] srcDeviceId - Source device
@@ -5395,9 +5509,9 @@ hipError_t hipMemGetAddressRange(hipDeviceptr_t* pbase, size_t* psize, hipDevice
 hipError_t hipMemcpyPeer(void* dst, int dstDeviceId, const void* src, int srcDeviceId,
                          size_t sizeBytes);
 /**
- * @brief Copies memory from one device to memory on another device.
+ * @brief Copies memory between two peer accessible devices asynchronously.
  *
- * @param [out] dst - Destination device pointer.
+ * @param [out] dst - Destination device pointer
  * @param [in] dstDeviceId - Destination device
  * @param [in] src - Source device pointer
  * @param [in] srcDevice - Source device
@@ -5408,7 +5522,7 @@ hipError_t hipMemcpyPeer(void* dst, int dstDeviceId, const void* src, int srcDev
  */
 hipError_t hipMemcpyPeerAsync(void* dst, int dstDeviceId, const void* src, int srcDevice,
                               size_t sizeBytes, hipStream_t stream __dparm(0));
-#endif
+
 // doxygen end PeerToPeer
 /**
  * @}
@@ -5907,6 +6021,86 @@ hipError_t hipModuleLoadData(hipModule_t* module, const void* image);
 hipError_t hipModuleLoadDataEx(hipModule_t* module, const void* image, unsigned int numOptions,
                                hipJitOption* options, void** optionValues);
 /**
+ * @brief Adds bitcode data to be linked with options.
+ * @param [in] state hip link state
+ * @param [in] type  Type of the input data or bitcode
+ * @param [in] data  Input data which is null terminated
+ * @param [in] size  Size of the input data
+ * @param [in] name  Optional name for this input
+ * @param [in] numOptions  Size of the options
+ * @param [in] options  Array of options applied to this input
+ * @param [in] optionValues  Array of option values cast to void*
+ *
+ * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorInvalidHandle
+ *
+ * If adding the file fails, it will
+ * @return #hipErrorInvalidConfiguration
+ *
+ * @see hipError_t
+ */
+hipError_t hipLinkAddData(hipLinkState_t state, hipJitInputType type, void* data, size_t size,
+                                const char* name, unsigned int numOptions, hipJitOption* options,
+                                void** optionValues);
+
+/**
+ * @brief Adds a file with bitcode to be linked with options.
+ * @param [in] state hip link state
+ * @param [in] type  Type of the input data or bitcode
+ * @param [in] path  Path to the input file where bitcode is present
+ * @param [in] numOptions  Size of the options
+ * @param [in] options  Array of options applied to this input
+ * @param [in] optionValues  Array of option values cast to void*
+ *
+ * @returns #hipSuccess, #hipErrorInvalidValue
+ *
+ * If adding the file fails, it will
+ * @return #hipErrorInvalidConfiguration
+ *
+ * @see hipError_t
+ */
+hipError_t hipLinkAddFile(hipLinkState_t state, hipJitInputType type, const char* path, unsigned int numOptions,
+                            hipJitOption* options, void** optionValues);
+
+/**
+ * @brief Completes the linking of the given program.
+ * @param [in]   state hip link state
+ * @param [out]  hipBinOut  Upon success, points to the output binary
+ * @param [out]  sizeOut  Size of the binary is stored (optional)
+ *
+ * @returns #hipSuccess #hipErrorInvalidValue
+ *
+ * If adding the data fails, it will
+ * @return #hipErrorInvalidConfiguration
+ *
+ * @see hipError_t
+ */
+
+hipError_t hipLinkComplete(hipLinkState_t state, void** hipBinOut, size_t* sizeOut);
+
+/**
+ * @brief Creates a linker instance with options.
+ * @param [in] numOptions  Number of options
+ * @param [in] option  Array of options
+ * @param [in] optionValues  Array of option values cast to void*
+ * @param [out] stateOut  hip link state created upon success
+ *
+ * @returns #hipSuccess #hipErrorInvalidValue #hipErrorInvalidConfiguration
+ *
+ * @see hipSuccess
+ */
+hipError_t hipLinkCreate(unsigned int numOptions, hipJitOption* options,
+                            void** optionValues, hipLinkState_t* stateOut);
+/**
+ * @brief Deletes the linker instance.
+ * @param [in] state link state instance
+ *
+ * @returns #hipSuccess #hipErrorInvalidValue
+ *
+ * @see hipSuccess
+ */
+hipError_t hipLinkDestroy(hipLinkState_t state);
+
+/**
  * @brief launches kernel f with launch parameters and shared memory on stream with arguments passed
  * to kernelparams or extra
  * @ingroup Execution
@@ -6041,10 +6235,59 @@ hipError_t hipLaunchCooperativeKernelMultiDevice(hipLaunchParams* launchParamsLi
  */
 hipError_t hipExtLaunchMultiKernelMultiDevice(hipLaunchParams* launchParamsList,
                                               int  numDevices, unsigned int  flags);
+/**
+ * @brief Launches a HIP kernel using a generic function pointer and the specified configuration.
+ * @ingroup Execution
+ *
+ * This function is equivalent to hipLaunchKernelEx but accepts the kernel as a generic function
+ * pointer.
+ *
+ * @param [in] config                 Pointer to the kernel launch configuration structure.
+ * @param [in] fPtr                   Pointer to the device kernel function.
+ * @param [in] args                   Array of pointers to the kernel arguments.
+ *
+ * @returns #hipSuccess if the kernel is launched successfully, otherwise an appropriate error code.
+ */
+hipError_t hipLaunchKernelExC(const hipLaunchConfig_t* config, const void* fPtr, void** args);
+/**
+ * @brief Launches a HIP kernel using the driver API with the specified configuration.
+ * @ingroup Execution
+ *
+ * This function dispatches the device kernel represented by a HIP function object.
+ * It passes both the kernel parameters and any extra configuration arguments to the kernel launch.
+ *
+ * @param [in] config  Pointer to the kernel launch configuration structure.
+ * @param [in] f       HIP function object representing the device kernel to be launched.
+ * @param [in] params  Array of pointers to the kernel parameters.
+ * @param [in] extra   Array of pointers for additional launch parameters or extra configuration
+ * data.
+ *
+ * @returns #hipSuccess if the kernel is launched successfully, otherwise an appropriate error code.
+ */
+hipError_t hipDrvLaunchKernelEx(const HIP_LAUNCH_CONFIG* config, hipFunction_t f, void** params,
+                                void** extra);
+/**
+ * @brief Returns a handle for the address range requested.
+ *
+ * This function returns a handle to a device pointer created using either hipMalloc set of APIs
+ * or through hipMemAddressReserve (as long as the ptr is mapped).
+ *
+ * @param [out] handle     Ptr to the handle where the fd or other types will be returned.
+ * @param [in] dptr        Device ptr for which we get the handle.
+ * @param [in] size        Size of the address range.
+ * @param [in] handleType  Type of the handle requested for the address range.
+ * @param [in] flags       Any flags set regarding the handle requested.
+ *
+ * @returns #hipSuccess if the kernel is launched successfully, otherwise an appropriate error code.
+ */
+ hipError_t hipMemGetHandleForAddressRange(void* handle, hipDeviceptr_t dptr, size_t size, 
+                                           hipMemRangeHandleType handleType,
+                                           unsigned long long flags);
 // doxygen end Module
 /**
  * @}
  */
+
 
 /**
  *-------------------------------------------------------------------------------------------------
@@ -6381,7 +6624,7 @@ hipError_t hipExtLaunchKernel(const void* function_address, dim3 numBlocks, dim3
  *
  * @returns #hipSuccess, #hipErrorInvalidValue, #hipErrorNotSupported, #hipErrorOutOfMemory
  *
- * @note 3D liner filter isn't supported on GFX90A boards, on which the API @p hipCreateTextureObject will
+ * @note 3D linear filter isn't supported on GFX90A boards, on which the API @p hipCreateTextureObject will
  * return hipErrorNotSupported.
  *
  */
@@ -9661,6 +9904,28 @@ static inline hipError_t hipMallocFromPoolAsync(
   hipMemPool_t  mem_pool,
   hipStream_t   stream) {
   return hipMallocFromPoolAsync(reinterpret_cast<void**>(dev_ptr), size, mem_pool, stream);
+}
+/**
+ * @brief Launches a HIP kernel using the specified configuration.
+ * @ingroup Execution
+ *
+ * This function dispatches the provided kernel with the given launch configuration and forwards the
+ * kernel arguments.
+ *
+ * @param [in] config                 Pointer to the kernel launch configuration structure.
+ * @param [in] kernel                 Pointer to the device kernel function to be launched.
+ * @param [in] args                   Variadic list of arguments to be passed to the kernel.
+ *
+ * @returns #hipSuccess if the kernel is launched successfully, otherwise an appropriate error code.
+ */
+template <typename... KernelArgs, typename... Params>
+static inline __host__ hipError_t hipLaunchKernelEx(const hipLaunchConfig_t* config,
+                                                    void (*kernel)(KernelArgs...),
+                                                    Params&&... args) {
+  return [&](KernelArgs... convertedArgs) {
+    void* pArgs[] = {&convertedArgs...};
+    return ::hipLaunchKernelExC(config, reinterpret_cast<void*>(kernel), pArgs);
+  }(std::forward<Params>(args)...);
 }
 /**
 * @}
