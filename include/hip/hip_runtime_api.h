@@ -4502,7 +4502,7 @@ hipError_t hipMemcpyDtoDAsync(hipDeviceptr_t dst, hipDeviceptr_t src, size_t siz
  * hipMemcpyHtoDAsync, hipMemFree, hipMemFreeHost, hipMemGetAddressRange, hipMemGetInfo,
  * hipMemHostAlloc, hipMemHostGetDevicePointer
  */
-hipError_t hipMemcpyAtoHAsync(void* dstHost, const hipArray_t srcArray, size_t srcOffset,
+hipError_t hipMemcpyAtoHAsync(void* dstHost, hipArray_t srcArray, size_t srcOffset,
                               size_t ByteCount, hipStream_t stream);
 /**
  * @brief Copies from host memory to a 1D array.
