@@ -166,7 +166,7 @@ typedef struct hipDeviceProp_t {
     int concurrentKernels;         ///< Device can possibly execute multiple kernels concurrently.
     int ECCEnabled;                ///< Device has ECC support enabled
     int pciBusID;                  ///< PCI Bus ID.
-    int pciDeviceID;               ///< PCI Device ID.
+    int pciDeviceID;               ///< PCI Device ID
     int pciDomainID;               ///< PCI Domain ID
     int tccDriver;                 ///< 1:If device is Tesla device using TCC driver, else 0
     int asyncEngineCount;          ///< Number of async engines
@@ -551,6 +551,7 @@ typedef enum hipDeviceAttribute_t {
     hipDeviceAttributeFineGrainSupport,                         ///< '1' if Device supports fine grain, '0' otherwise
     hipDeviceAttributeWallClockRate,                            ///< Constant frequency of wall clock in kilohertz.
     hipDeviceAttributeNumberOfXccs,                             ///< The number of XCC(s) on the device
+    hipDeviceAttributePciChipId,                                ///< PCI Chip ID. Returns gpu manufacturer device id
 
     hipDeviceAttributeAmdSpecificEnd = 19999,
     hipDeviceAttributeVendorSpecificBegin = 20000,
