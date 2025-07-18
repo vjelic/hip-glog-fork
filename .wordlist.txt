@@ -12,7 +12,6 @@ Asynchrony
 asynchrony
 backtrace
 bfloat
-BFloat
 Bitcode
 bitcode
 bitcodes
