@@ -26,6 +26,14 @@ supporting the concept of unified memory. This enables the CPU and the GPUs in
 the system to access host and other GPUs' memory without explicit memory
 management.
 
+This document covers unified memory management in HIP, which encompasses several
+approaches that provide a single address space accessible from both CPU and GPU.
+**Unified memory** refers to the overall architectural concept of this shared
+address space, while **managed memory** is one specific implementation that
+provides automatic page migration between devices. Other unified memory allocators
+like :cpp:func:`hipMalloc()` and :cpp:func:`hipHostMalloc()` provide different
+access patterns within the same unified address space concept.
+
 Unified memory
 ================================================================================
 
@@ -39,7 +47,8 @@ model is shown in the following figure.
 
 Unified memory enables the access to memory located on other devices via
 several methods, depending on whether hardware support is available or has to be
-managed by the driver.
+managed by the driver. CPUs can access memory allocated via :cpp:func:`hipMalloc()`,
+providing bidirectional memory accessibility within the unified address space.
 
 Managed memory
 ================================================================================
@@ -107,7 +116,7 @@ allocators (e.g., ``new``, ``malloc()``) can be used.
 
     * - Architecture
       - :cpp:func:`hipMallocManaged()`, ``__managed__``
-      - ``new``, ``malloc()``
+      - ``new``, ``malloc()``, ``allocate()``
     * - CDNA4
       - ✅
       - ✅ :sup:`1`
@@ -154,10 +163,11 @@ system requirements` and :ref:`checking unified memory support`.
 
 - **System allocated unified memory**
 
-  Starting with CDNA2, the ``new`` and ``malloc()`` system allocators allow
+  Starting with CDNA2, the ``new``, ``malloc()``, and ``allocate()`` (Fortran) system allocators allow
   you to reserve unified memory. The system allocator is more versatile and
   offers an easy transition for code written for CPUs to HIP code as the
-  same system allocation API is used.
+  same system allocation API is used. Memory allocated by these allocators can
+  be registered to be accessible on device using :cpp:func:`hipHostRegister()`.
 
 - **HIP allocated non-managed memory**
 
@@ -181,10 +191,10 @@ functions on ROCm and CUDA, both with and without HMM support.
         - Access outside the origin without HMM or ``HSA_XNACK=0``
         - Allocation origin with HMM and ``HSA_XNACK=1``
         - Access outside the origin with HMM and ``HSA_XNACK=1``
-      * - ``new``, ``malloc()``
+      * - ``new``, ``malloc()``, ``allocate()``
         - host
         - not accessible on device
-        - host
+        - first touch
         - page-fault migration
       * - :cpp:func:`hipMalloc()`
         - device
@@ -194,13 +204,13 @@ functions on ROCm and CUDA, both with and without HMM support.
       * - :cpp:func:`hipMallocManaged()`, ``__managed__``
         - pinned host
         - zero copy [zc]_
-        - host
+        - first touch
         - page-fault migration
       * - :cpp:func:`hipHostRegister()`
         - pinned host
         - zero copy [zc]_
-        - undefined behavior
-        - undefined behavior
+        - pinned host
+        - zero copy [zc]_
       * - :cpp:func:`hipHostMalloc()`
         - pinned host
         - zero copy [zc]_
@@ -384,10 +394,11 @@ explicit memory management example is presented in the last tab.
     .. tab-item:: new
 
         .. code-block:: cpp
-            :emphasize-lines: 20-23
+            :emphasize-lines: 21-24
 
             #include <hip/hip_runtime.h>
             #include <iostream>
+            #include <new>
 
             #define HIP_CHECK(expression)              \
             {                                          \
@@ -406,10 +417,10 @@ explicit memory management example is presented in the last tab.
 
             // This example requires HMM support and the environment variable HSA_XNACK needs to be set to 1
             int main() {
-                // Allocate memory for a, b, and c.
-                int *a = new int[1];
-                int *b = new int[1];
-                int *c = new int[1];
+                // Allocate memory with proper alignment for performance
+                int *a = new(std::align_val_t(128)) int[1];
+                int *b = new(std::align_val_t(128)) int[1];
+                int *c = new(std::align_val_t(128)) int[1];
 
                 // Setup input values.
                 *a = 1;
@@ -424,10 +435,10 @@ explicit memory management example is presented in the last tab.
                 // Prints the result.
                 std::cout << *a << " + " << *b << " = " << *c << std::endl;
 
-                // Cleanup allocated memory.
-                delete[] a;
-                delete[] b;
-                delete[] c;
+                // Cleanup allocated memory with matching aligned delete.
+                ::operator delete[](a, std::align_val_t(128));
+                ::operator delete[](b, std::align_val_t(128));
+                ::operator delete[](c, std::align_val_t(128));
 
                 return 0;
             }
@@ -521,8 +532,23 @@ Performance optimizations for unified memory
 There are several ways, in which the developer can guide the runtime to reduce
 copies between devices, in order to improve performance.
 
+With ``numactl --membind`` bindings, developers can control where physical
+allocation occurs by restricting memory allocation to specific NUMA nodes.
+This approach can reduce or eliminate the need for explicit data prefetching
+since memory is allocated in the desired location from the start.
+
 Data prefetching
 --------------------------------------------------------------------------------
+
+.. warning::
+    Data prefetching is not always an optimization and can slow down execution,
+    as the API takes time to execute. If the memory is already in the right
+    place, prefetching will waste time. Users should profile their code to
+    verify whether prefetching is beneficial for their specific use case.
+
+When prefetching is beneficial, developers can consider setting different default
+locations for different devices and using prefetch between them, which can help
+eliminate IPC communication overhead when memory moves between devices.
 
 Data prefetching is a technique used to improve the performance of your
 application by moving data to the desired device before it's actually
